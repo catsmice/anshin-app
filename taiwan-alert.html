@@ -167,7 +167,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .stn .ping{opacity:0;transform-box:fill-box;transform-origin:50% 50%}
 .waves-armed .stn.hit .ping{animation:ping .75s cubic-bezier(.2,.7,.3,1) 1}
 @keyframes ping{from{opacity:.85;transform:scale(.4)}to{opacity:0;transform:scale(3.4)}}
-.wavefront{fill:none;pointer-events:none}
+.wavefront{pointer-events:none}
 .wclock{font-family:var(--mono);font-size:9px;fill:var(--ink2);letter-spacing:.1em}
 
 /* ---------- stage mode (press P) ---------- */
@@ -1912,9 +1912,22 @@ function quakeExtra(q) {
       </g>`;
     }).join('');
 
+    /* Each front is a disc filled with a radial gradient: transparent at the
+       centre, brightening to the leading edge, feathered just outside it. The
+       stops are re-computed every frame so the trail keeps a constant width in
+       KILOMETRES while the radius grows, and the whole thing dims as the
+       energy spreads. */
+    const grad = (id, col) => `<radialGradient id="${id}" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0" stop-color="${col}" stop-opacity="0"></stop>
+        <stop offset="0.55" stop-color="${col}" stop-opacity="0"></stop>
+        <stop offset="0.8" stop-color="${col}" stop-opacity="0"></stop>
+        <stop offset="0.985" stop-color="${col}" stop-opacity="0"></stop>
+        <stop offset="1" stop-color="${col}" stop-opacity="0"></stop>
+      </radialGradient>`;
     const waves = `<g class="waveg" data-waves="${proj.pxPerKm.toFixed(5)}" transform="translate(${ex.toFixed(1)},${ey.toFixed(1)})">
-        <circle class="wavefront pwave" r="0" stroke="#1A6CB5" stroke-width="${(1.6 * k).toFixed(1)}" opacity=".75"></circle>
-        <circle class="wavefront swave" r="0" stroke="#C4190B" stroke-width="${(2.2 * k).toFixed(1)}" opacity=".85"></circle>
+        <defs>${grad('wgP', '#1A6CB5')}${grad('wgS', '#C4190B')}</defs>
+        <circle class="wavefront pwave" r="0" fill="url(#wgP)" stroke="#1A6CB5" stroke-width="${(1.2 * k).toFixed(1)}" stroke-opacity="0"></circle>
+        <circle class="wavefront swave" r="0" fill="url(#wgS)" stroke="#C4190B" stroke-width="${(1.6 * k).toFixed(1)}" stroke-opacity="0"></circle>
       </g>`;
 
     return `${waves}<g class="stations">${stations}</g>
@@ -1952,6 +1965,8 @@ function finishWaves(svg, loop) {
   if (!target) return;
   target.classList.remove('waves-armed');
   target.querySelectorAll('.wavefront').forEach(w => w.setAttribute('r', 0));
+  target.querySelectorAll('.waveg stop').forEach(st => st.setAttribute('stop-opacity', '0'));
+  target.querySelectorAll('.wavefront').forEach(w => w.setAttribute('stroke-opacity', '0'));
   const clock = target.querySelector('.wclock'); if (clock) clock.textContent = '';
   /* Hold the all-lit network, then run it again — an audience needs more
      than one pass. Never queue another cycle while the tab is hidden. */
@@ -1975,12 +1990,31 @@ function playQuakeWaves() {
   if (reduce) { svg.classList.remove('waves-armed'); stns.forEach(x => x.classList.add('hit')); return; }
   svg.classList.add('waves-armed');
   const P = 6.0, S = 3.5, RATE = 20;
+  const TRAIL_KM = 26;                    /* how far the pulse trails behind its front */
+  const FADE_KM = maxKm * 1.25;           /* gone by the time it clears the network */
+  const stops = sel => [...g.querySelectorAll('#' + sel + ' stop')];
+  const gP = stops('wgP'), gS = stops('wgS');
+  const paint = (circle, st, km, peak) => {
+    const R = km * pxPerKm;
+    circle.setAttribute('r', R.toFixed(1));
+    if (!st.length) return;
+    const fade = Math.max(0, 1 - km / FADE_KM);
+    const a = peak * Math.pow(fade, 0.85);
+    const tail = km > 0 ? Math.max(0, 1 - TRAIL_KM / km) : 0;
+    st[1].setAttribute('offset', tail.toFixed(4));
+    st[1].setAttribute('stop-opacity', '0');
+    st[2].setAttribute('offset', (tail + (1 - tail) * 0.6).toFixed(4));
+    st[2].setAttribute('stop-opacity', (a * 0.16).toFixed(3));
+    st[3].setAttribute('stop-opacity', a.toFixed(3));
+    st[4].setAttribute('stop-opacity', (a * 0.1).toFixed(3));
+    circle.setAttribute('stroke-opacity', (a * 0.6).toFixed(3));   /* keeps the front crisp */
+  };
   let t0 = null;
   const step = ts => {
     if (t0 == null) t0 = ts;
     const sec = (ts - t0) / 1000 * RATE;                 // seismic seconds
-    pw.setAttribute('r', (sec * P * pxPerKm).toFixed(1));
-    sw.setAttribute('r', (sec * S * pxPerKm).toFixed(1));
+    paint(pw, gP, sec * P, 0.42);
+    paint(sw, gS, sec * S, 0.8);
     if (clock) clock.textContent = 't + ' + sec.toFixed(1) + ' s';
     for (const x of stns) {
       if (!x.classList.contains('hit') && parseFloat(x.getAttribute('data-sdist')) <= sec * S) x.classList.add('hit');
