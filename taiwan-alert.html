@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Taiwan Alert — live CWA hazard information in English, 中文, 日本語</title>
 <meta name="color-scheme" content="light">
+<link rel="icon" id="favicon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%2314191E'/%3E%3C/svg%3E">
 <style>
 /* ---------------------------------------------------------------------
    Light theme: a civil-defence notice printed on paper. Warm off-white
@@ -2258,6 +2259,25 @@ function viewStage() {
     <div class="mapwrap">${map}</div>
     <div class="stagefoot">${legend}<span class="stagekey">${esc(t('stageHint'))}</span></div>`;
 }
+/* Tab icon: the island itself, filled with whatever severity is in force in
+   your county right now. Same geometry, same projection as every other map. */
+let favKey = '';
+function updateFavicon() {
+  const link = document.getElementById('favicon');
+  if (!link) return;
+  const mine = activeAlerts().filter(a => a.affectedRegions.includes(state.county));
+  const top = mine.length ? worstOf(mine.map(a => a.severity)) : 'none';
+  if (top === favKey) return;                       // only redraw when it changes
+  favKey = top;
+  const fill = top === 'none' ? '#E4E8EC' : sevHex(top);
+  const proj = makeProjection(MAIN_BBOX, 64, 64, 6);
+  const d = TW_GEO.features.filter(f => MAIN_CODES.includes(f.properties.code))
+    .map(f => featurePath(f, proj)).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">` +
+    `<rect width="64" height="64" rx="14" fill="#14191E"/>` +
+    `<path d="${d}" fill="${fill}"/></svg>`;
+  link.setAttribute('href', 'data:image/svg+xml,' + encodeURIComponent(svg));
+}
 function renderHeader() {
   const seg = document.getElementById('langSeg');
   seg.innerHTML = LANGS.map(([code, label]) =>
@@ -2289,6 +2309,7 @@ function render() {
     : state.view === 'typhoon' ? viewTyphoon() : viewHome();
   el.innerHTML = html;
   renderHeader();
+  updateFavicon();
   clearTimeout(riseFailsafe);
   riseFailsafe = setTimeout(dropReveal, 1400);
   /* innerHTML replaced the nodes the loop was driving, so re-arm it here:
