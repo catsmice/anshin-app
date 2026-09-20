@@ -4,6 +4,10 @@ A disaster-alert page for foreigners living in Taiwan. It reads the Central Weat
 
 The whole application is one HTML file. There is no build step, no bundler, no server and no API key to type in. Open `taiwan-alert.html` and it fetches the country's current conditions.
 
+![The earthquake screen: a choropleth of Taiwan coloured by shaking intensity, with wave fronts expanding from the epicenter and seismographs lighting up as they are reached](screenshots/earthquake-waves.gif)
+
+A real report replayed on the earthquake screen: M4.9 off Taitung on 14 September 2026. The P and S fronts expand from the epicenter at 6.0 and 3.5 km/s, and each of the 52 seismographs lights up when the S front reaches the epicentral distance CWA recorded for that station.
+
 ## Why
 
 Taiwan's official warnings are published in Chinese. A migrant worker in Taichung, a tourist in Hualien or a foreign resident in Taipei finds out last, usually secondhand from somebody who can read the announcement for them. The data itself is public and open. The language is the barrier.
@@ -62,6 +66,8 @@ Every figure on screen is a claim about a real emergency, and the app's own disc
 
 Values the app computed rather than read are labelled computed, with the rule stated in words and the inputs listed. A translated epicenter shows the Chinese it parsed and the four pieces it pulled out. A severity tier shows the intensity rows it compared. The affected-county list shows which Chinese area names resolved to which ISO codes, and which resolved to none.
 
+![Alert cards annotated with dataset id, field path, raw JSON value and CWA issue time, plus the computed rules and their inputs](screenshots/show-source.jpg)
+
 The annotations are translated as well, so the audit reads in whichever language you picked.
 
 ## The field traps
@@ -91,6 +97,8 @@ Three maps, one projection, one set of county outlines, so a county keeps the sa
 
 The projection is equirectangular with longitude scaled by cos(latitude), written once in `makeProjection()` and reused by all three. The GeoJSON is inline. The favicon is drawn from the same geometry and filled with your county's current severity, so the browser tab carries the state too.
 
+![The home screen: a map of Taiwan with counties filled by severity, beside a stream of alert cards in English](screenshots/home.jpg)
+
 The home map is the region picker. Tap any county to switch to it.
 
 Counties with nothing active are a neutral slate. Green would promise a safety check the app has not performed, and it knows only what CWA published.
@@ -102,6 +110,10 @@ The typhoon map frames the storm and Taiwan together until doing so would shrink
 English is the default, since the users are foreigners.
 
 CWA always supplies Chinese and occasionally supplies official English. Anshin uses the official English where it exists and labels it official. Most active warnings ship a `zh-TW` narrative only, so every alert also gets an English and Japanese body written from the structured fields (phenomenon, counties, validity window, computed severity) and labelled as generated. The safety guidance in the app is written by the app and marked as such. A machine rendering of safety-critical wording is never presented as the official text.
+
+![The same home screen in Traditional Chinese, with county names, alert bodies and interface labels all switched](screenshots/languages.jpg)
+
+The same screen in 繁體中文. Switching language reprints everything, including the generated alert bodies and the source annotations.
 
 Japanese place names are folded to shinjitai, so `花蓮縣` reads as `花蓮県` and `臺東縣政府` becomes `台東県庁`.
 
@@ -144,6 +156,10 @@ Nothing in the interface reads a CWA record directly. Every hazard first becomes
 State lives in a single `state` object, and every view is a function that returns an HTML string. Language, selected county and the Show source setting persist in localStorage.
 
 When the script runs without a `document`, its last block puts the parsers, the severity functions and the projection on `module.exports`, so they can be pulled into a Node test harness.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
 
 ## Data
 
