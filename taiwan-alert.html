@@ -594,7 +594,9 @@ const STR = {
   projected:{en:'Showing {t} — projected from the validity windows CWA published', zh:'顯示 {t} 的狀態，依氣象署公布的生效時間推算', ja:'{t} 時点の状態（気象署が公表した有効期間から算出）'},
   scrubHint:{en:'Drag to see which warnings are still in force later tonight', zh:'拖曳可查看稍後仍在生效中的警報', ja:'ドラッグで後の時間帯に有効な警報を確認'},
   stations:{en:'{n} seismographs recorded this', zh:'{n} 個測站記錄到這次地震', ja:'{n} か所の観測点が記録'},
-  waveReplay:{en:'Replay wave fronts', zh:'重播震波', ja:'揺れの伝播を再生'},
+  waveReplay:{en:'Play wave fronts', zh:'播放震波', ja:'揺れの伝播を再生'},
+  wavePause:{en:'Pause wave fronts', zh:'暫停震波', ja:'揺れの伝播を停止'},
+  waveLooping:{en:'looping', zh:'循環播放', ja:'ループ再生'},
   waveSpeed:{en:'×20 speed', zh:'20 倍速', ja:'20倍速'},
   waveLegend:{en:'P wave 6.0 km/s · S wave 3.5 km/s', zh:'P 波 6.0 km/s · S 波 3.5 km/s', ja:'P波 6.0 km/s · S波 3.5 km/s'},
   stageHint:{en:'P · exit presentation', zh:'P · 離開簡報模式', ja:'P · プレゼン表示を終了'},
@@ -633,7 +635,7 @@ const state = {
   lang: 'en', source: false, view: 'home',
   county: 'TW-TPE',
   alertId: null, quakeId: null, cycloneIdx: 0,
-  stage: false, animKey: '', previewMs: 0,
+  stage: false, animKey: '', previewMs: 0, waveLoop: true,
   ds: {},              // dataset key -> {status, data, error, at}
   alerts: [], quakes: [], cyclones: [],
   now: new Date()
@@ -1935,19 +1937,31 @@ function quakeExtra(q) {
 
 /* P and S fronts expanding from the epicenter at ×20 real time. A station
    lights up when the S front reaches ITS OWN reported EpicenterDistance. */
-let waveRAF = null, waveGuard = null;
-function finishWaves(svg) {
-  const target = svg || document.querySelector('.mapwrap svg');
-  if (!target) return;
+let waveRAF = null, waveGuard = null, waveLoopTimer = null;
+const WAVE_HOLD_MS = 1700;      /* beat on the finished network before resetting */
+
+function stopWaveLoop() {
+  clearTimeout(waveLoopTimer); waveLoopTimer = null;
   if (waveRAF) { cancelAnimationFrame(waveRAF); waveRAF = null; }
   clearTimeout(waveGuard); waveGuard = null;
+}
+function finishWaves(svg, loop) {
+  const target = svg || document.querySelector('.mapwrap svg');
+  if (waveRAF) { cancelAnimationFrame(waveRAF); waveRAF = null; }
+  clearTimeout(waveGuard); waveGuard = null;
+  if (!target) return;
   target.classList.remove('waves-armed');
   target.querySelectorAll('.wavefront').forEach(w => w.setAttribute('r', 0));
   const clock = target.querySelector('.wclock'); if (clock) clock.textContent = '';
+  /* Hold the all-lit network, then run it again — an audience needs more
+     than one pass. Never queue another cycle while the tab is hidden. */
+  clearTimeout(waveLoopTimer); waveLoopTimer = null;
+  if (loop && state.waveLoop && !document.hidden && state.view === 'quake' && document.querySelector('.waveg')) {
+    waveLoopTimer = setTimeout(playQuakeWaves, WAVE_HOLD_MS);
+  }
 }
 function playQuakeWaves() {
-  if (waveRAF) cancelAnimationFrame(waveRAF);
-  clearTimeout(waveGuard);
+  stopWaveLoop();
   const g = document.querySelector('.waveg');
   if (!g) return;
   const svg = g.closest('svg');
@@ -1972,11 +1986,11 @@ function playQuakeWaves() {
       if (!x.classList.contains('hit') && parseFloat(x.getAttribute('data-sdist')) <= sec * S) x.classList.add('hit');
     }
     if (sec * S < maxKm * 1.25) { waveRAF = requestAnimationFrame(step); }
-    else { finishWaves(svg); }
+    else { finishWaves(svg, true); }
   };
   /* If the frame clock stalls — backgrounded window, throttled tab — stop
      waiting and show the finished network rather than a dimmed one. */
-  waveGuard = setTimeout(() => finishWaves(svg), 12000);
+  waveGuard = setTimeout(() => finishWaves(svg, true), 12000);
   waveRAF = requestAnimationFrame(step);
 }
 
@@ -2041,8 +2055,8 @@ function viewQuake() {
             .map(([c, i]) => [c, { color: INTENSITY_COLOR[i], pulse: i >= 5 }])) })}
         ${intensityLegend()}
         <div class="legend" style="justify-content:space-between">
-          <span class="li">${esc(t('waveLegend'))} · ${esc(t('waveSpeed'))}</span>
-          <button class="chip" data-action="waves">${esc(t('waveReplay'))} ▸</button>
+          <span class="li">${esc(t('waveLegend'))} · ${esc(t('waveSpeed'))}${state.waveLoop ? ' · ' + esc(t('waveLooping')) : ''}</span>
+          <button class="chip ${state.waveLoop ? 'me' : ''}" data-action="waves">${state.waveLoop ? esc(t('wavePause')) + ' ⏸' : esc(t('waveReplay')) + ' ▸'}</button>
         </div>
       </div>
       ${annot({ computed: true, rule: rule('waveFronts'),
@@ -2243,8 +2257,11 @@ function render() {
   renderHeader();
   clearTimeout(riseFailsafe);
   riseFailsafe = setTimeout(dropReveal, 1400);
-  if (state.animate && state.view === 'quake' && document.querySelector('.waveg')) {
-    setTimeout(playQuakeWaves, 420);
+  /* innerHTML replaced the nodes the loop was driving, so re-arm it here:
+     this covers entering the tab, the one-minute tick and stage toggles. */
+  stopWaveLoop();
+  if (state.view === 'quake' && document.querySelector('.waveg')) {
+    if (state.waveLoop) waveLoopTimer = setTimeout(playQuakeWaves, state.animate ? 420 : 120);
   }
 }
 let riseFailsafe = null;
@@ -2263,7 +2280,12 @@ function wire() {
     if ((el = hit('[data-nav]'))) { go(el.getAttribute('data-nav')); return; }
     if ((el = hit('[data-retry]'))) { fetchDataset(el.getAttribute('data-retry')); return; }
     if ((el = hit('[data-action="refresh"]'))) { loadAll(); return; }
-    if ((el = hit('[data-action="waves"]'))) { playQuakeWaves(); return; }
+    if ((el = hit('[data-action="waves"]'))) {
+      state.waveLoop = !state.waveLoop;
+      if (state.waveLoop) { render(); playQuakeWaves(); }
+      else { stopWaveLoop(); finishWaves(); render(); }
+      return;
+    }
     if ((el = hit('[data-action="now"]'))) {
       state.previewMs = 0;
       const r = document.querySelector('[data-action="scrub"]'); if (r) r.value = 0;
@@ -2305,7 +2327,12 @@ function boot() {
       state.source = !!o.source; }
   } catch (e) {}
   wire();
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { dropReveal(); finishWaves(); } });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { stopWaveLoop(); return; }
+    dropReveal();
+    finishWaves();
+    if (state.waveLoop && state.view === 'quake' && document.querySelector('.waveg')) playQuakeWaves();
+  });
   rebuild();
   render();
   loadAll();
