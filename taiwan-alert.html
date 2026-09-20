@@ -1837,7 +1837,7 @@ function viewDetail() {
   if (a.hazardType === 'earthquake') {
     const q = p;
     fields += field(t('magnitude'), `<span class="big">${q.magnitude != null ? q.magnitude.toFixed(1) : '—'}</span>`,
-      { ds: q.dsId, path: 'EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue', raw: q.raw.EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue, issued: q.issueTime, url: q.web });
+      { ds: q.dsId, path: 'EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue', raw: q.raw.EarthquakeInfo.EarthquakeMagnitude?.MagnitudeValue, issued: q.issueTime, url: q.web });
     fields += field(t('maxIntensity'), esc(intensityLabel(q.maxIdx)) + (q.maxCode ? ' · ' + esc(countyLabel(q.maxCode)) : ''),
       { computed: true, rule: rule('intensityMax', { n: q.shakingMeta.observeCount }),
         inputs: [...q.intensityByCounty].map(([c, i]) => ({ label: BY_CODE[c].zh, value: INTENSITY_SCALE[i] })) });
@@ -2049,7 +2049,7 @@ function viewQuake() {
 
   let f = '';
   f += field(t('magnitude'), `<span class="big">${q.magnitude != null ? q.magnitude.toFixed(1) : '—'}</span>`,
-    { ds: q.dsId, path: 'EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue', raw: q.raw.EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue, issued: q.issueTime, url: q.web });
+    { ds: q.dsId, path: 'EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue', raw: q.raw.EarthquakeInfo.EarthquakeMagnitude?.MagnitudeValue, issued: q.issueTime, url: q.web });
   f += field(t('depth'), esc(q.depth != null ? q.depth.toFixed(1) : '—') + ' ' + esc(t('km')),
     { ds: q.dsId, path: 'EarthquakeInfo.FocalDepth', raw: q.raw.EarthquakeInfo.FocalDepth });
   f += field(t('epicenter'), esc(epicenterLabel(q.epicenter)),
@@ -2061,7 +2061,7 @@ function viewQuake() {
       note: q.epicenter.parts.untranslated ? t('untranslated') : null }, 'txt');
   f += field('lat / lon', `${q.lat}, ${q.lon}`,
     { ds: q.dsId, path: 'EarthquakeInfo.Epicenter.EpicenterLatitude / .EpicenterLongitude',
-      raw: { EpicenterLatitude: q.raw.EarthquakeInfo.Epicenter.EpicenterLatitude, EpicenterLongitude: q.raw.EarthquakeInfo.Epicenter.EpicenterLongitude } });
+      raw: { EpicenterLatitude: q.raw.EarthquakeInfo.Epicenter?.EpicenterLatitude, EpicenterLongitude: q.raw.EarthquakeInfo.Epicenter?.EpicenterLongitude } });
   f += field(t('maxIntensity'), esc(intensityLabel(q.maxIdx)) + (q.maxCode ? ' · ' + esc(countyLabel(q.maxCode)) : ''),
     { computed: true, rule: q.shakingMeta.usedObserve ? rule('intensityMax', { n: q.shakingMeta.observeCount })
         : rule('intensityFallback', { m: q.shakingMeta.rowCount }),
