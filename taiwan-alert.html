@@ -132,7 +132,62 @@ body.src .annotated{text-decoration:underline dotted rgba(26,108,181,.5);text-un
 /* ---------- map ---------- */
 .mapwrap{position:relative;background:linear-gradient(180deg,#CFE0EF,#C3D7E9);border-radius:var(--r);
   border:1px solid var(--line);overflow:hidden;box-shadow:var(--shadow)}
-.mapwrap svg{display:block;width:100%;max-width:470px;height:auto;margin:0 auto}
+.mapwrap svg{display:block;width:100%;max-width:var(--mapmax,470px);height:auto;margin:0 auto}
+@media(min-width:700px){ :root{--mapmax:560px} }
+@media(min-width:1100px){ :root{--mapmax:720px} }
+
+/* ---------- cinematic map layers ---------- */
+.halo{opacity:.5}
+.halo.pulse{animation:breathe 2.8s ease-in-out infinite}
+@keyframes breathe{0%,100%{opacity:.28}50%{opacity:.78}}
+.county.rise{animation:riseIn .55s cubic-bezier(.2,.7,.3,1) both;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes riseIn{from{opacity:0;transform:translateY(7px) scale(.985)}to{opacity:1;transform:none}}
+.grat{stroke:rgba(17,22,27,.12);stroke-width:.5;fill:none}
+.tropic{stroke:rgba(17,22,27,.3);stroke-width:.7;stroke-dasharray:5 4;fill:none}
+.tropiclabel{font-family:var(--mono);font-size:7.5px;fill:rgba(17,22,27,.5);letter-spacing:.08em}
+
+/* ---------- time scrubber ---------- */
+.tl{display:block;width:100%;height:auto}
+.tlbar{rx:3}
+.tlhead{stroke:var(--ink);stroke-width:1.4}
+.tltick{stroke:rgba(17,22,27,.14);stroke-width:.6}
+.tllabel{font-family:var(--mono);font-size:7.5px;fill:var(--ink3);letter-spacing:.06em}
+.tlname{font-family:var(--mono);font-size:8px;fill:#FFFFFF;letter-spacing:.04em}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:22px;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--line2)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--ink);border:3px solid var(--panel);box-shadow:0 1px 3px rgba(20,25,30,.35);margin-top:-7px}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--line2)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);border:3px solid var(--panel)}
+
+/* ---------- seismograph network ---------- */
+.stn .dot{transition:opacity .22s ease}
+.waves-armed .stn .dot{opacity:.2}
+.waves-armed .stn.hit .dot{opacity:1}
+.stn .ping{opacity:0;transform-box:fill-box;transform-origin:50% 50%}
+.waves-armed .stn.hit .ping{animation:ping .75s cubic-bezier(.2,.7,.3,1) 1}
+@keyframes ping{from{opacity:.85;transform:scale(.4)}to{opacity:0;transform:scale(3.4)}}
+.wavefront{fill:none;pointer-events:none}
+.wclock{font-family:var(--mono);font-size:9px;fill:var(--ink2);letter-spacing:.1em}
+
+/* ---------- stage mode (press P) ---------- */
+body.stage{padding-bottom:0;overflow:hidden}
+body.stage header.top, body.stage nav.bottom{display:none}
+body.stage main{padding:0}
+body.stage .wrap{max-width:none;padding:0}
+body.stage .mapwrap{border:0;border-radius:0;box-shadow:none;background:linear-gradient(180deg,#CFE0EF,#BED4E8)}
+body.stage .mapwrap svg{max-width:none;width:100%;height:100vh;height:100dvh}
+.stagebar{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:center;gap:20px;
+  padding:18px 26px;background:linear-gradient(180deg,rgba(245,243,238,.96),rgba(245,243,238,0));pointer-events:none}
+.stagebar .bar{width:6px;align-self:stretch;border-radius:3px;background:var(--sev);min-height:54px}
+.stagebar .word{font-size:clamp(30px,4.4vw,62px);font-weight:600;letter-spacing:-.025em;line-height:1;color:var(--sev)}
+.stagebar .where{font-size:clamp(14px,1.5vw,22px);color:var(--ink2);margin-top:6px}
+.stagebar .right{margin-left:auto;text-align:right}
+.stagefoot{position:fixed;bottom:0;left:0;right:0;z-index:60;display:flex;justify-content:space-between;
+  gap:16px;padding:14px 26px;background:linear-gradient(0deg,rgba(245,243,238,.96),rgba(245,243,238,0));pointer-events:none}
+.stagefoot .legend{background:transparent;border:0;padding:0}
+.stagefoot .legend .li{font-size:11px}
+.stagekey{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
 .county{cursor:pointer;transition:opacity .15s ease}
 .county:hover{opacity:.82}
 .maplabel{font-family:var(--mono);font-size:8.5px;fill:#3F4A55;letter-spacing:.1em;text-transform:uppercase}
@@ -519,6 +574,9 @@ const STR = {
     shakingRows:{en:'per-county rows with InfoStatus:"observe" are authoritative; summary rows such as 最大震度4級地區 are used only when a report has none', zh:'以 InfoStatus:"observe" 的各縣市列為準；僅在沒有觀測列時，才使用「最大震度4級地區」這類彙整列', ja:'InfoStatus:"observe" の県市別行を正とし、「最大震度4級地區」のような集計行は observe 行がない場合のみ使用'},
     distanceCalc:{en:'great-circle distance from the storm centre to the nearest point of the inline Taiwan county geometry', zh:'自暴風中心到內建臺灣縣市圖形最近一點的大圓距離', ja:'台風の中心から内蔵の台湾県市形状の最近点までの大円距離'},
     bearingCalc:{en:'initial bearing from a central reference point in Taiwan (23.75N, 121.0E) to the storm centre', zh:'自臺灣中心參考點（23.75N, 121.0E）至暴風中心的方位角', ja:'台湾の基準点（北緯23.75度、東経121.0度）から台風中心への方位'},
+    timeline:{en:'each county is filled by the highest severity in force at the previewed moment, from each alert’s own startTime/endTime. This is not a forecast — CWA publishes no severity beyond these windows.', zh:'各縣市以所選時刻仍生效之警報中的最高嚴重度著色，依各警報自身的 startTime／endTime 判定。這不是預報：氣象署未發布這些時間窗以外的資訊。', ja:'各県市は選択時刻に有効な警報の最高深刻度で塗り分けます（各警報の startTime／endTime に基づく）。予報ではありません。気象署はこの期間外の情報を発表していません。'},
+    waveFronts:{en:'wave fronts are drawn from constant crustal velocities (P 6.0 km/s, S 3.5 km/s) expanding from the reported epicenter — illustrative, not CWA arrival times. Each station lights up at its own EpicenterDistance as CWA reports it.', zh:'震波圈以固定地殼波速（P 波 6.0 km/s、S 波 3.5 km/s）自報告震央擴散繪製，屬示意性質，非氣象署實測到時。各測站依氣象署提供的 EpicenterDistance 亮起。', ja:'波面は一定の地殻速度（P波6.0 km/s、S波3.5 km/s）で震央から広がるものとして描いた概念図で、気象署の到達時刻ではありません。各観測点は気象署の EpicenterDistance の値で点灯します。'},
+    stationPlot:{en:'every seismograph in the report, placed at its own StationLatitude / StationLongitude, sized by peak ground acceleration and coloured by the intensity that station recorded', zh:'報告中的每一個測站，依其 StationLatitude／StationLongitude 定位，大小反映最大地動加速度，顏色為該站觀測震度', ja:'報告に含まれる全観測点を StationLatitude／StationLongitude に配置し、最大加速度で大きさを、観測震度で色を決めています'},
     summaryGen:{en:'summary sentence generated by this app from the structured CWA fields — not a CWA translation', zh:'摘要由本應用依氣象署結構化欄位生成，並非氣象署譯文', ja:'要約は本アプリが気象署の構造化項目から生成したもので、気象署の翻訳ではありません'}
   },
   notes:{
@@ -531,6 +589,17 @@ const STR = {
     forecastValid:{en:'valid time computed as InitialTime + ForecastHour', zh:'有效時間由 InitialTime + ForecastHour 計算而得', ja:'有効時刻は InitialTime + ForecastHour から算出'}
   },
   rawRecord:{en:'raw CWA record', zh:'氣象署原始記錄', ja:'気象署の生レコード'},
+  timeline:{en:'Validity windows', zh:'警報生效時間軸', ja:'有効期間のタイムライン'},
+  nowBtn:{en:'NOW', zh:'現在', ja:'現在'},
+  projected:{en:'Showing {t} — projected from the validity windows CWA published', zh:'顯示 {t} 的狀態，依氣象署公布的生效時間推算', ja:'{t} 時点の状態（気象署が公表した有効期間から算出）'},
+  scrubHint:{en:'Drag to see which warnings are still in force later tonight', zh:'拖曳可查看稍後仍在生效中的警報', ja:'ドラッグで後の時間帯に有効な警報を確認'},
+  stations:{en:'{n} seismographs recorded this', zh:'{n} 個測站記錄到這次地震', ja:'{n} か所の観測点が記録'},
+  waveReplay:{en:'Replay wave fronts', zh:'重播震波', ja:'揺れの伝播を再生'},
+  waveSpeed:{en:'×20 speed', zh:'20 倍速', ja:'20倍速'},
+  waveLegend:{en:'P wave 6.0 km/s · S wave 3.5 km/s', zh:'P 波 6.0 km/s · S 波 3.5 km/s', ja:'P波 6.0 km/s · S波 3.5 km/s'},
+  stageHint:{en:'P · exit presentation', zh:'P · 離開簡報模式', ja:'P · プレゼン表示を終了'},
+  stageOn:{en:'Presentation', zh:'簡報模式', ja:'プレゼン表示'},
+  liveNow:{en:'LIVE · CWA OPEN DATA', zh:'即時 · 氣象署開放資料', ja:'ライブ · 気象署オープンデータ'},
   phenomenon:{en:'Phenomenon', zh:'現象', ja:'現象'},
   significanceK:{en:'Significance flag', zh:'警特報別', ja:'発表区分'},
   severityK:{en:'Severity (computed)', zh:'嚴重度（計算）', ja:'深刻度（算出）'},
@@ -564,6 +633,7 @@ const state = {
   lang: 'en', source: false, view: 'home',
   county: 'TW-TPE',
   alertId: null, quakeId: null, cycloneIdx: 0,
+  stage: false, animKey: '', previewMs: 0,
   ds: {},              // dataset key -> {status, data, error, at}
   alerts: [], quakes: [], cyclones: [],
   now: new Date()
@@ -991,7 +1061,22 @@ function readShakingArea(eq) {
       if (!byCounty.has(res.code) || byCounty.get(res.code) < idx) byCounty.set(res.code, idx);
     }
   }
-  return { byCounty, usedObserve: observe.length > 0, rowCount: rows.length, observeCount: observe.length };
+  /* Every report also carries the individual seismographs that recorded it —
+     name, ID, coordinates, intensity, PGA, PGV and epicentral distance. */
+  const stations = [];
+  for (const r of rows) {
+    for (const st of arr(r.EqStation)) {
+      const la = num(st.StationLatitude), lo = num(st.StationLongitude);
+      if (la == null || lo == null) continue;
+      stations.push({
+        name: st.StationName, id: st.StationID, lat: la, lon: lo,
+        idx: intensityIndex(st.SeismicIntensity),
+        pga: num(st.pga && st.pga.IntScaleValue), pgv: num(st.pgv && st.pgv.IntScaleValue),
+        dist: num(st.EpicenterDistance), raw: st
+      });
+    }
+  }
+  return { byCounty, stations, usedObserve: observe.length > 0, rowCount: rows.length, observeCount: observe.length };
 }
 function buildQuakes() {
   const seen = new Map();
@@ -1019,7 +1104,7 @@ function buildQuakes() {
         epicenterRaw: epi.Location, epicenter: parseEpicenter(epi.Location),
         reportContent: eq.ReportContent, reportColor: eq.ReportColor, remark: eq.ReportRemark,
         web: eq.Web, image: eq.ReportImageURI, shakemap: eq.ShakemapImageURI,
-        intensityByCounty: shaking.byCounty, shakingMeta: shaking,
+        intensityByCounty: shaking.byCounty, shakingMeta: shaking, stations: shaking.stations,
         maxIdx, maxCode, tsunami: TSUNAMI_RE.test(String(eq.ReportContent || '')),
         severity: sev.sev, severityBasis: sev, raw: eq
       };
@@ -1139,7 +1224,10 @@ function rebuild() {
   }
   if (state.cycloneIdx >= state.cyclones.length) state.cycloneIdx = 0;
 }
-const isActive = a => a.expiresAt ? a.expiresAt > state.now : false;
+/* Everything that asks "is this in force?" asks it about the previewed
+   moment, so the scrubber moves the whole app, not just the map. */
+const viewNow = () => new Date(+state.now + state.previewMs);
+const isActive = a => a.expiresAt ? (a.expiresAt > viewNow() && (!a.startsAt || a.startsAt <= viewNow())) : false;
 const activeAlerts = () => state.alerts.filter(isActive);
 function severityByCounty() {
   const m = new Map();
@@ -1199,18 +1287,95 @@ const MAIN_BBOX = { minLon: 119.42, maxLon: 122.08, minLat: 21.82, maxLat: 25.38
 const INSET_CODES = ['TW-KIN', 'TW-LIE'];
 const MAIN_CODES = COUNTIES.map(c => c.code).filter(c => !INSET_CODES.includes(c));
 
+/* One size table for every map, so a projector gets a bigger viewBox rather
+   than a blown-up one: label and stroke sizes stay in the same user units. */
+function mapSize() {
+  if (state.stage) {
+    const vw = (typeof window !== 'undefined') ? window.innerWidth : 1600;
+    const vh = (typeof window !== 'undefined') ? window.innerHeight : 900;
+    const H = 920;
+    return { W: Math.round(H * Math.min(2.4, Math.max(1, vw / vh))), H, pad: 34 };
+  }
+  const w = (typeof window !== 'undefined') ? window.innerWidth : 390;
+  if (w >= 1100) return { W: 700, H: 650, pad: 20 };
+  if (w >= 700) return { W: 540, H: 500, pad: 15 };
+  return { W: 390, H: 362, pad: 10 };
+}
+const CENTROIDS = (() => {
+  const m = {};
+  for (const f of TW_GEO.features) {
+    const b = featureBBox([f.properties.code], 0);
+    m[f.properties.code] = { lat: (b.minLat + b.maxLat) / 2, lon: (b.minLon + b.maxLon) / 2 };
+  }
+  return m;
+})();
+
+/* Sea, grain, graticule and the Tropic of Cancer — it runs straight through
+   Chiayi and Hualien, and everyone here knows exactly where it is. */
+function mapDefs(scale) {
+  const k = Math.max(1, scale / 96);
+  return `<defs>
+    <linearGradient id="sea" x1="0" y1="0" x2="0.25" y2="1">
+      <stop offset="0" stop-color="#D8E7F4"/><stop offset="0.55" stop-color="#C7DAEC"/><stop offset="1" stop-color="#B6CCE3"/>
+    </linearGradient>
+    <radialGradient id="seaglow" cx="0.5" cy="0.32" r="0.72">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.55"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+    </filter>
+    <filter id="lift" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="${Math.min(4.5, 2.2 * k).toFixed(1)}" stdDeviation="${Math.min(6, 2.8 * k).toFixed(1)}" flood-color="#0E2236" flood-opacity="0.3"/>
+    </filter>
+    <filter id="halo" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="${Math.min(9, 5 * k).toFixed(1)}"/>
+    </filter>
+  </defs>`;
+}
+function mapBackdrop(proj, W, H) {
+  const g = [];
+  g.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="url(#sea)"></rect>`);
+  g.push(`<rect x="0" y="0" width="${W}" height="${H}" fill="url(#seaglow)"></rect>`);
+  g.push(`<rect x="0" y="0" width="${W}" height="${H}" filter="url(#grain)" opacity="0.055"></rect>`);
+  const b = proj.bbox, lines = [];
+  for (let lon = Math.ceil(b.minLon); lon <= b.maxLon; lon++)
+    lines.push(`M${proj.X(lon).toFixed(1)},0 L${proj.X(lon).toFixed(1)},${H}`);
+  for (let lat = Math.ceil(b.minLat); lat <= b.maxLat; lat++)
+    lines.push(`M0,${proj.Y(lat).toFixed(1)} L${W},${proj.Y(lat).toFixed(1)}`);
+  g.push(`<path class="grat" d="${lines.join(' ')}"></path>`);
+  const tropic = 23.43928;
+  if (tropic > b.minLat && tropic < b.maxLat) {
+    const y = proj.Y(tropic).toFixed(1);
+    g.push(`<path class="tropic" d="M0,${y} L${W},${y}"></path>`);
+    if (W >= 500) g.push(`<text class="tropiclabel" x="${W - 8}" y="${(+y - 5).toFixed(1)}" text-anchor="end">23°26′ N · TROPIC OF CANCER</text>`);
+  }
+  return g.join('');
+}
+function drawHalos(codes, proj, halo) {
+  if (!halo || !halo.size) return '';
+  const paths = TW_GEO.features.filter(f => codes.includes(f.properties.code) && halo.has(f.properties.code)).map(f => {
+    const h = halo.get(f.properties.code);
+    return `<path class="halo${h.pulse ? ' pulse' : ''}" data-halo="${f.properties.code}" d="${featurePath(f, proj)}" fill="${h.color}"></path>`;
+  });
+  return paths.length ? `<g filter="url(#halo)">${paths.join('')}</g>` : '';
+}
 function countyFillAttrs(code, fills, selected) {
   const fill = (fills && fills.get(code)) || 'var(--none)';
   const isSel = code === selected;
   return `fill="${fill}" stroke="${isSel ? '#11161B' : 'rgba(255,255,255,.92)'}" stroke-width="${isSel ? 2.2 : 0.8}"` +
          (isSel ? ' stroke-linejoin="round" paint-order="fill stroke"' : '');
 }
-function drawCounties(codes, proj, fills, selected, interactive) {
+function drawCounties(codes, proj, fills, selected, interactive, opts) {
+  const o = opts || {};
   const feats = TW_GEO.features.filter(f => codes.includes(f.properties.code))
     .sort((a, b) => (a.properties.code === selected ? 1 : 0) - (b.properties.code === selected ? 1 : 0));
   return feats.map(f => {
     const code = f.properties.code;
-    return `<path class="county" d="${featurePath(f, proj)}" ${countyFillAttrs(code, fills, selected)}` +
+    const c = CENTROIDS[code];
+    const delay = o.animate ? ((MAIN_BBOX.maxLat - c.lat) * 0.085).toFixed(2) : null;   /* north falls first */
+    return `<path class="county${o.animate ? ' rise' : ''}"${delay ? ` style="animation-delay:${delay}s"` : ''}` +
+      ` d="${featurePath(f, proj)}" ${countyFillAttrs(code, fills, selected)}` +
       (interactive ? ` data-county="${code}" role="button" tabindex="0"><title>${esc(countyLabel(code))}</title></path>` : `></path>`);
   }).join('');
 }
@@ -1221,20 +1386,25 @@ function drawInset(code, x, y, w, h, fills, selected, label) {
   return `<g transform="translate(${x},${y})">
     <rect class="insetbox" x="0.5" y="0.5" width="${w - 1}" height="${h - 1}" rx="5"></rect>
     <path class="county" d="${featurePath(f, p)}" ${countyFillAttrs(code, fills, selected)} data-county="${code}" role="button" tabindex="0"><title>${esc(countyLabel(code))}</title></path>
-    <text class="maplabel" x="${w / 2}" y="${h - 5}" text-anchor="middle">${esc(label)}</text>
+    <text class="maplabel" x="${w / 2}" y="${h - 5}" text-anchor="middle" style="font-size:${(h / 54 * 8.5).toFixed(1)}px">${esc(label)}</text>
   </g>`;
 }
 
 /* The nationwide alert map: every county filled by its highest active severity. */
 function taiwanAlertMap(fills, selected, opts) {
   const o = opts || {};
-  const W = 390, H = 362;
-  const proj = makeProjection(MAIN_BBOX, W, H, 10);
-  const insetW = 72, insetH = 54;
+  const { W, H, pad } = mapSize();
+  const proj = makeProjection(MAIN_BBOX, W, H, pad);
+  const s = proj.scale / 96;
+  const insetW = 72 * s, insetH = 54 * s, gap = 8 * s;
+  const footPad = state.stage ? 96 : 0;
   return `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(t('mapTitle'))}" preserveAspectRatio="xMidYMid meet">
-    ${drawCounties(MAIN_CODES, proj, fills, selected, true)}
-    ${drawInset('TW-KIN', 8, H - insetH - 74, insetW, insetH, fills, selected, state.lang === 'en' ? 'KINMEN' : state.lang === 'ja' ? '金門' : '金門')}
-    ${drawInset('TW-LIE', 8, H - insetH - 8, insetW, insetH, fills, selected, state.lang === 'en' ? 'MATSU' : state.lang === 'ja' ? '馬祖' : '馬祖')}
+    ${mapDefs(proj.scale)}
+    ${mapBackdrop(proj, W, H)}
+    ${drawHalos(MAIN_CODES, proj, o.halo)}
+    <g filter="url(#lift)">${drawCounties(MAIN_CODES, proj, fills, selected, true, o)}</g>
+    ${drawInset('TW-KIN', gap, H - footPad - insetH * 2 - gap * 3, insetW, insetH, fills, selected, state.lang === 'en' ? 'KINMEN' : '金門')}
+    ${drawInset('TW-LIE', gap, H - footPad - insetH - gap, insetW, insetH, fills, selected, state.lang === 'en' ? 'MATSU' : '馬祖')}
     ${o.extra ? o.extra(proj) : ''}
   </svg>`;
 }
@@ -1448,12 +1618,13 @@ function dataPanel() {
 function viewHome() {
   const sevMap = severityByCounty();
   const fills = new Map([...sevMap].map(([c, s]) => [c, sevHex(s)]));
+  const halo = new Map([...sevMap].map(([c, s]) => [c, { color: sevHex(s), pulse: s === 'severe' }]));
   const mine = activeAlerts().filter(a => a.affectedRegions.includes(state.county));
   const others = activeAlerts().filter(a => !a.affectedRegions.includes(state.county));
   const top = mine.length ? worstOf(mine.map(a => a.severity)) : 'none';
   const q = state.quakes[0] || null;
 
-  const hero = `<div class="hero sev-${top === 'none' ? 'none' : top}">
+  const hero = `<div class="hero sev-${top === 'none' ? 'none' : top}" id="heroCard">
     <div class="bar"></div>
     <div style="min-width:0">
       <div class="micro">${esc(t('yourCounty'))}</div>
@@ -1479,7 +1650,7 @@ function viewHome() {
         <select data-action="county" aria-label="${esc(t('pickCounty'))}">${COUNTIES.map(c =>
           `<option value="${c.code}" ${c.code === state.county ? 'selected' : ''}>${esc(countyLabel(c.code))}</option>`).join('')}</select>
       </div>
-      ${taiwanAlertMap(fills, state.county)}
+      ${taiwanAlertMap(fills, state.county, { halo, animate: state.animate })}
       ${legend}
     </div>`;
 
@@ -1499,6 +1670,8 @@ function viewHome() {
     <div class="grid" style="gap:12px">
       ${mapCard}
       ${hero}
+      <div class="status" id="previewBanner" style="${state.previewMs ? '' : 'display:none'}">${esc(t('projected', { t: fmtFull(viewNow()) }))}</div>
+      ${timelineCard()}
       ${status}
     </div>
     <div class="grid" style="gap:12px">
@@ -1514,6 +1687,92 @@ function viewHome() {
     </div>
   </div>
   <div class="disclaim">${esc(t('disclaimer'))}</div>`;
+}
+
+/* A Gantt of every validity window CWA published, with a draggable playhead. */
+function timelineWindow() {
+  const t0 = +state.now;
+  let t1 = t0 + 6 * 3600e3;
+  for (const a of state.alerts) if (a.expiresAt && +a.expiresAt > t1) t1 = Math.min(+a.expiresAt + 3600e3, t0 + 48 * 3600e3);
+  return { t0, t1 };
+}
+function timelineCard() {
+  const { t0, t1 } = timelineWindow();
+  const span = Math.max(1, t1 - t0);
+  const rows = state.alerts.filter(a => a.expiresAt && +a.expiresAt > t0)
+    .sort((a, b) => SEV_RANK[b.severity] - SEV_RANK[a.severity]).slice(0, 8);
+  const W = 390, rowH = 19, top = 16, H = top + Math.max(1, rows.length) * rowH + 16;
+  const X = ms => 6 + (Math.min(Math.max(ms, t0), t1) - t0) / span * (W - 12);
+  let g = '';
+  for (let h = 0; h <= 48; h += 3) {
+    const ms = t0 + h * 3600e3; if (ms > t1) break;
+    g += `<line class="tltick" x1="${X(ms).toFixed(1)}" y1="10" x2="${X(ms).toFixed(1)}" y2="${H - 12}"></line>`;
+    const lx = X(ms);
+    if (lx > 16 && lx < W - 16) g += `<text class="tllabel" x="${lx.toFixed(1)}" y="8" text-anchor="middle">${esc(fmtClock(new Date(ms)))}</text>`;
+  }
+  rows.forEach((a, i) => {
+    const y = top + i * rowH, x0 = X(+(a.startsAt || state.now)), x1 = X(+a.expiresAt);
+    const w = Math.max(3, x1 - x0);
+    g += `<rect class="tlbar" x="${x0.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${rowH - 6}"
+      fill="${sevHex(a.severity)}" opacity=".9" rx="3"></rect>`;
+    if (w > 60) g += `<text class="tlname" x="${(x0 + 5).toFixed(1)}" y="${(y + rowH - 11).toFixed(1)}">${esc(
+      a.hazardType === 'weather' ? phenomenonLabel(a.payload.phenomena)
+      : a.hazardType === 'earthquake' ? 'M' + (a.payload.magnitude != null ? a.payload.magnitude.toFixed(1) : '?')
+      : cycloneName(a.payload))}</text>`;
+  });
+  const px = X(t0 + state.previewMs);
+  g += `<line class="tlhead" id="tlHead" x1="${px.toFixed(1)}" y1="10" x2="${px.toFixed(1)}" y2="${H - 12}"></line>`;
+  return `<div class="card pad">
+    <div class="maphead" style="padding:0 0 6px">
+      <span class="micro">${esc(t('timeline'))}</span>
+      <span class="micro" id="tlLabel">${state.previewMs ? esc(fmtDT(viewNow())) : esc(t('nowBtn'))}</span>
+    </div>
+    <svg class="tl" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" aria-hidden="true">${g}</svg>
+    <div style="display:flex;gap:10px;align-items:center;margin-top:2px">
+      <input type="range" min="0" max="1000" step="1" value="${Math.round(state.previewMs / span * 1000)}"
+        data-action="scrub" data-span="${span}" aria-label="${esc(t('timeline'))}">
+      <button class="chip" data-action="now">${esc(t('nowBtn'))}</button>
+    </div>
+    <div class="note">${esc(t('scrubHint'))}</div>
+    ${annot({ computed: true, rule: rule('timeline'),
+      inputs: rows.map(a => ({ label: alertHeadline(a), value: fmtDTp(a.startsAt) + ' → ' + fmtDTp(a.expiresAt) })) })}
+  </div>`;
+}
+/* Scrubbing repaints fills and the playhead only — no re-render, no jank. */
+function applyPreview() {
+  const sevMap = severityByCounty();
+  document.querySelectorAll('[data-county]').forEach(el => {
+    const code = el.getAttribute('data-county');
+    el.setAttribute('fill', sevMap.has(code) ? sevHex(sevMap.get(code)) : 'var(--none)');
+  });
+  document.querySelectorAll('[data-halo]').forEach(el => {
+    const code = el.getAttribute('data-halo');
+    const on = sevMap.has(code);
+    el.setAttribute('fill', on ? sevHex(sevMap.get(code)) : 'transparent');
+    el.style.opacity = on ? '' : '0';
+  });
+  const mine = activeAlerts().filter(a => a.affectedRegions.includes(state.county));
+  const top = mine.length ? worstOf(mine.map(a => a.severity)) : 'none';
+  const hero = document.getElementById('heroCard');
+  if (hero) {
+    hero.className = 'hero sev-' + (top === 'none' ? 'none' : top);
+    const w = hero.querySelector('.word'), wh = hero.querySelector('.where');
+    if (w) { w.textContent = top === 'none' ? t('sev.none') : sevLabel(top); w.style.color = top === 'none' ? 'var(--ink)' : ''; }
+    if (wh) wh.textContent = countyLabel(state.county) + (mine.length ? ' · ' + t('nActive', { n: mine.length }) : '');
+  }
+  const { t0, t1 } = timelineWindow();
+  const head = document.getElementById('tlHead');
+  if (head) {
+    const x = 6 + Math.min(1, state.previewMs / Math.max(1, t1 - t0)) * (390 - 12);
+    head.setAttribute('x1', x.toFixed(1)); head.setAttribute('x2', x.toFixed(1));
+  }
+  const lab = document.getElementById('tlLabel');
+  if (lab) lab.textContent = state.previewMs ? fmtDT(viewNow()) : t('nowBtn');
+  const banner = document.getElementById('previewBanner');
+  if (banner) {
+    banner.style.display = state.previewMs ? '' : 'none';
+    banner.textContent = t('projected', { t: fmtFull(viewNow()) });
+  }
 }
 
 function guidanceBlock(kind) {
@@ -1629,6 +1888,98 @@ function viewDetail() {
   <div class="disclaim">${esc(t('disclaimer'))}</div>`;
 }
 
+/* The epicenter, the wave fronts and every station that felt it. */
+function quakeExtra(q) {
+  return proj => {
+    if (q.lat == null || q.lon == null) return '';
+    const k = proj.scale / 96;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const inside = q.lon >= MAIN_BBOX.minLon && q.lon <= MAIN_BBOX.maxLon && q.lat >= MAIN_BBOX.minLat && q.lat <= MAIN_BBOX.maxLat;
+    const ex = clamp(proj.X(q.lon), 14 * k, proj.w - 14 * k), ey = clamp(proj.Y(q.lat), 14 * k, proj.h - 14 * k);
+
+    const stations = (q.stations || []).map(st => {
+      const x = proj.X(st.lon), y = proj.Y(st.lat);
+      if (x < -20 || y < -20 || x > proj.w + 20 || y > proj.h + 20) return '';
+      const r = Math.min(7, 1.5 + Math.sqrt(Math.max(0, st.pga || 0)) / 2.4) * k;
+      const col = st.idx >= 0 ? INTENSITY_COLOR[st.idx] : '#9FC4E4';
+      const d = st.dist != null ? st.dist : haversine(q.lat, q.lon, st.lat, st.lon);
+      return `<g class="stn" data-sdist="${d.toFixed(1)}" transform="translate(${x.toFixed(1)},${y.toFixed(1)})">
+        <circle class="ping" r="${(r * 1.6).toFixed(1)}" fill="none" stroke="${col}" stroke-width="${(1.4 * k).toFixed(1)}"></circle>
+        <circle class="dot" r="${r.toFixed(1)}" fill="${col}" stroke="#FFFFFF" stroke-width="${(0.9 * k).toFixed(1)}"></circle>
+        <title>${esc(st.name || st.id)} · ${esc(intensityLabel(st.idx))} · PGA ${st.pga != null ? st.pga.toFixed(1) : '—'} gal · ${d.toFixed(1)} km</title>
+      </g>`;
+    }).join('');
+
+    const waves = `<g class="waveg" data-waves="${proj.pxPerKm.toFixed(5)}" transform="translate(${ex.toFixed(1)},${ey.toFixed(1)})">
+        <circle class="wavefront pwave" r="0" stroke="#1A6CB5" stroke-width="${(1.6 * k).toFixed(1)}" opacity=".75"></circle>
+        <circle class="wavefront swave" r="0" stroke="#C4190B" stroke-width="${(2.2 * k).toFixed(1)}" opacity=".85"></circle>
+      </g>`;
+
+    return `${waves}<g class="stations">${stations}</g>
+      <g transform="translate(${ex.toFixed(1)},${ey.toFixed(1)})">
+        <g stroke="#FFFFFF" stroke-width="${(3.4 * k).toFixed(1)}" fill="none" opacity=".85">
+          <circle r="${(6.5 * k).toFixed(1)}"></circle>
+          <line x1="${(-13 * k).toFixed(1)}" y1="0" x2="${(13 * k).toFixed(1)}" y2="0"></line>
+          <line x1="0" y1="${(-13 * k).toFixed(1)}" x2="0" y2="${(13 * k).toFixed(1)}"></line>
+        </g>
+        <circle r="${(12 * k).toFixed(1)}" fill="none" stroke="#11161B" stroke-width="${k.toFixed(1)}" opacity=".35"></circle>
+        <circle r="${(6.5 * k).toFixed(1)}" fill="none" stroke="#11161B" stroke-width="${(1.6 * k).toFixed(1)}"></circle>
+        <line x1="${(-13 * k).toFixed(1)}" y1="0" x2="${(13 * k).toFixed(1)}" y2="0" stroke="#11161B" stroke-width="${k.toFixed(1)}" opacity=".75"></line>
+        <line x1="0" y1="${(-13 * k).toFixed(1)}" x2="0" y2="${(13 * k).toFixed(1)}" stroke="#11161B" stroke-width="${k.toFixed(1)}" opacity=".75"></line>
+        <circle r="${(3 * k).toFixed(1)}" fill="#C4190B"></circle>
+        ${inside ? '' : `<text class="maplabel" x="0" y="${(-18 * k).toFixed(1)}" text-anchor="middle" fill="#11161B" stroke="#FFFFFF" stroke-width="3" paint-order="stroke">${esc(state.lang === 'en' ? 'OFF MAP' : state.lang === 'ja' ? '範囲外' : '圖外')}</text>`}
+      </g>
+      <text class="wclock" x="${(proj.w - 12 * k).toFixed(1)}" y="${(18 * k).toFixed(1)}" text-anchor="end"></text>`;
+  };
+}
+
+/* P and S fronts expanding from the epicenter at ×20 real time. A station
+   lights up when the S front reaches ITS OWN reported EpicenterDistance. */
+let waveRAF = null, waveGuard = null;
+function finishWaves(svg) {
+  const target = svg || document.querySelector('.mapwrap svg');
+  if (!target) return;
+  if (waveRAF) { cancelAnimationFrame(waveRAF); waveRAF = null; }
+  clearTimeout(waveGuard); waveGuard = null;
+  target.classList.remove('waves-armed');
+  target.querySelectorAll('.wavefront').forEach(w => w.setAttribute('r', 0));
+  const clock = target.querySelector('.wclock'); if (clock) clock.textContent = '';
+}
+function playQuakeWaves() {
+  if (waveRAF) cancelAnimationFrame(waveRAF);
+  clearTimeout(waveGuard);
+  const g = document.querySelector('.waveg');
+  if (!g) return;
+  const svg = g.closest('svg');
+  const pxPerKm = parseFloat(g.getAttribute('data-waves')) || 1;
+  const stns = [...svg.querySelectorAll('.stn')];
+  const clock = svg.querySelector('.wclock');
+  const pw = g.querySelector('.pwave'), sw = g.querySelector('.swave');
+  const maxKm = Math.max(140, ...stns.map(x => parseFloat(x.getAttribute('data-sdist')) || 0));
+  stns.forEach(x => x.classList.remove('hit'));
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce) { svg.classList.remove('waves-armed'); stns.forEach(x => x.classList.add('hit')); return; }
+  svg.classList.add('waves-armed');
+  const P = 6.0, S = 3.5, RATE = 20;
+  let t0 = null;
+  const step = ts => {
+    if (t0 == null) t0 = ts;
+    const sec = (ts - t0) / 1000 * RATE;                 // seismic seconds
+    pw.setAttribute('r', (sec * P * pxPerKm).toFixed(1));
+    sw.setAttribute('r', (sec * S * pxPerKm).toFixed(1));
+    if (clock) clock.textContent = 't + ' + sec.toFixed(1) + ' s';
+    for (const x of stns) {
+      if (!x.classList.contains('hit') && parseFloat(x.getAttribute('data-sdist')) <= sec * S) x.classList.add('hit');
+    }
+    if (sec * S < maxKm * 1.25) { waveRAF = requestAnimationFrame(step); }
+    else { finishWaves(svg); }
+  };
+  /* If the frame clock stalls — backgrounded window, throttled tab — stop
+     waiting and show the finished network rather than a dimmed one. */
+  waveGuard = setTimeout(() => finishWaves(svg), 12000);
+  waveRAF = requestAnimationFrame(step);
+}
+
 function intensityLegend() {
   return `<div class="legend">${INTENSITY_SCALE.map((v, i) =>
     `<span class="li"><span class="sw" style="background:${INTENSITY_COLOR[i]}"></span>${esc(INTENSITY_LABEL[state.lang][i])}</span>`).join('')}</div>`;
@@ -1637,28 +1988,12 @@ function viewQuake() {
   const q = state.quakes.find(x => x.id === state.quakeId) || state.quakes[0];
   const picker = state.quakes.slice(0, 12).map(x =>
     `<button class="chip ${x.id === (q && q.id) ? 'me' : ''}" data-quake="${esc(x.id)}" style="padding:6px 8px">
-      M${x.magnitude != null ? x.magnitude.toFixed(1) : '—'} · ${esc(fmtDT(x.originTime))}</button>`).join(' ');
+      M${x.magnitude != null ? x.magnitude.toFixed(1) : '—'} · ${esc(fmtDT(x.originTime))}${x.stations && x.stations.length ? ` · ${x.stations.length}◦` : ''}</button>`).join(' ');
   if (!q) {
     return `<div class="card pad note">${esc(state.ds.quakeBig.status === 'loading' ? t('loading') : t('noQuake'))}</div>${dataPanel()}`;
   }
   const fills = new Map([...q.intensityByCounty].map(([c, i]) => [c, INTENSITY_COLOR[i]]));
-  const extra = proj => {
-    if (q.lat == null || q.lon == null) return '';
-    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-    const inside = q.lon >= MAIN_BBOX.minLon && q.lon <= MAIN_BBOX.maxLon && q.lat >= MAIN_BBOX.minLat && q.lat <= MAIN_BBOX.maxLat;
-    const x = clamp(proj.X(q.lon), 14, proj.w - 14), y = clamp(proj.Y(q.lat), 14, proj.h - 14);
-    return `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)})">
-      <g stroke="#FFFFFF" stroke-width="3.4" fill="none" opacity=".85">
-        <circle r="6.5"></circle><line x1="-13" y1="0" x2="13" y2="0"></line><line x1="0" y1="-13" x2="0" y2="13"></line>
-      </g>
-      <circle r="12" fill="none" stroke="#11161B" stroke-width="1" opacity=".35"></circle>
-      <circle r="6.5" fill="none" stroke="#11161B" stroke-width="1.6"></circle>
-      <line x1="-13" y1="0" x2="13" y2="0" stroke="#11161B" stroke-width="1" opacity=".75"></line>
-      <line x1="0" y1="-13" x2="0" y2="13" stroke="#11161B" stroke-width="1" opacity=".75"></line>
-      <circle r="3" fill="#C4190B"></circle>
-      ${inside ? '' : `<text class="maplabel" x="0" y="-18" text-anchor="middle" fill="#11161B" stroke="#FFFFFF" stroke-width="3" paint-order="stroke">${esc(state.lang === 'en' ? 'OFF MAP' : state.lang === 'ja' ? '範囲外' : '圖外')}</text>`}
-    </g>`;
-  };
+  const extra = quakeExtra(q);
   const rows = [...q.intensityByCounty].sort((a, b) => b[1] - a[1]).map(([c, i]) =>
     `<div class="field"><div class="row"><span class="k" style="letter-spacing:.06em">${esc(countyLabel(c))}</span>
       <span class="v" style="color:${INTENSITY_COLOR[i]}">${esc(INTENSITY_LABEL[state.lang][i])}</span></div></div>`).join('');
@@ -1699,10 +2034,22 @@ function viewQuake() {
         <div class="where">${esc(epicenterLabel(q.epicenter))}</div></div></div>
       <div class="mapwrap">
         <div class="maphead">
-          <span class="micro">${esc(t('shakingMap'))}</span><span class="micro">${esc(t('epicenter'))} ✛</span></div>
-        ${taiwanAlertMap(fills, state.county, { extra })}
+          <span class="micro">${esc(t('shakingMap'))}</span>
+          <span class="micro">${q.stations && q.stations.length ? esc(t('stations', { n: q.stations.length })) : esc(t('epicenter')) + ' ✛'}</span></div>
+        ${taiwanAlertMap(fills, state.county, { extra, animate: state.animate,
+          halo: new Map([...q.intensityByCounty].filter(([, i]) => i >= 4)
+            .map(([c, i]) => [c, { color: INTENSITY_COLOR[i], pulse: i >= 5 }])) })}
         ${intensityLegend()}
+        <div class="legend" style="justify-content:space-between">
+          <span class="li">${esc(t('waveLegend'))} · ${esc(t('waveSpeed'))}</span>
+          <button class="chip" data-action="waves">${esc(t('waveReplay'))} ▸</button>
+        </div>
       </div>
+      ${annot({ computed: true, rule: rule('waveFronts'),
+        inputs: [{ label: 'epicenter', value: q.lat + ', ' + q.lon },
+                 { label: 'stations plotted', value: (q.stations || []).length }] })}
+      ${annot({ ds: q.dsId, path: 'Intensity.ShakingArea[].EqStation[] (StationLatitude · StationLongitude · SeismicIntensity · pga.IntScaleValue · EpicenterDistance)',
+        raw: (q.stations && q.stations[0]) ? q.stations[0].raw : null, issued: q.issueTime, note: rule('stationPlot') })}
       <div class="note">${esc(t('intensityNote'))}</div>
     </div>
     <div class="grid" style="gap:12px">
@@ -1816,6 +2163,53 @@ const NAV_ICONS = {
   quake: '<svg viewBox="0 0 24 24"><path d="M2 12h3l2-6 3 12 3-15 3 15 2-6h4"/></svg>',
   typhoon: '<svg viewBox="0 0 24 24"><path d="M12 12c4-4 9-2 9 2s-6 5-9 2-1-9 3-9"/><circle cx="12" cy="12" r="1.6"/></svg>'
 };
+/* Presentation mode: one map, one number, nothing else. */
+function viewStage() {
+  let sev = 'none', word = '', where = '', legend = '', map = '';
+  if (state.view === 'quake') {
+    const q = state.quakes.find(x => x.id === state.quakeId) || state.quakes[0];
+    if (q) {
+      sev = q.severity; word = 'M ' + (q.magnitude != null ? q.magnitude.toFixed(1) : '—');
+      where = epicenterLabel(q.epicenter) + ' · ' + t('maxIntensity') + ' ' + intensityLabel(q.maxIdx);
+      const fills = new Map([...q.intensityByCounty].map(([c, i]) => [c, INTENSITY_COLOR[i]]));
+      const halo = new Map([...q.intensityByCounty].filter(([, i]) => i >= 4)
+        .map(([c, i]) => [c, { color: INTENSITY_COLOR[i], pulse: i >= 5 }]));
+      map = taiwanAlertMap(fills, state.county, { halo, animate: state.animate, extra: quakeExtra(q) });
+      legend = intensityLegend();
+    }
+  } else if (state.view === 'typhoon') {
+    const c = state.cyclones[state.cycloneIdx] || state.cyclones[0];
+    if (c) {
+      sev = c.near ? 'warning' : 'info'; word = cycloneName(c);
+      where = t('distTaiwan') + ' ' + (c.distanceKm != null ? Math.round(c.distanceKm) : '—') + ' ' + t('km') + ' · ' + dirLabel(c.bearingPoint);
+      const sz = mapSize();
+      map = typhoonMap(c, sz.W, sz.H, {});
+    }
+  }
+  if (!map) {
+    const sevMap = severityByCounty();
+    const mine = activeAlerts().filter(a => a.affectedRegions.includes(state.county));
+    sev = mine.length ? worstOf(mine.map(a => a.severity)) : 'none';
+    word = sev === 'none' ? t('sev.none') : sevLabel(sev);
+    where = countyLabel(state.county) + (mine.length ? ' · ' + t('nActive', { n: mine.length }) : '');
+    map = taiwanAlertMap(new Map([...sevMap].map(([c, x]) => [c, sevHex(x)])), state.county, {
+      animate: state.animate,
+      halo: new Map([...sevMap].map(([c, x]) => [c, { color: sevHex(x), pulse: x === 'severe' }]))
+    });
+    legend = `<div class="legend">${['severe','warning','advisory','info'].map(x =>
+      `<span class="li"><span class="sw" style="background:${sevHex(x)}"></span>${esc(sevLabel(x))}</span>`).join('')}
+      <span class="li"><span class="sw" style="background:var(--none)"></span>${esc(t('legendNone'))}</span></div>`;
+  }
+  return `<div class="stagebar sev-${sev === 'none' ? 'none' : sev}">
+      <div class="bar"></div>
+      <div><div class="word"${sev === 'none' ? ' style="color:var(--ink)"' : ''}>${esc(word)}</div>
+        <div class="where">${esc(where)}</div></div>
+      <div class="right"><div class="stagekey">${esc(t('liveNow'))}</div>
+        <div class="where">${esc(fmtFull(state.now))}</div></div>
+    </div>
+    <div class="mapwrap">${map}</div>
+    <div class="stagefoot">${legend}<span class="stagekey">${esc(t('stageHint'))}</span></div>`;
+}
 function renderHeader() {
   const seg = document.getElementById('langSeg');
   seg.innerHTML = LANGS.map(([code, label]) =>
@@ -1833,13 +2227,28 @@ function renderHeader() {
 function render() {
   state.now = new Date();
   document.body.classList.toggle('src', state.source);
+  document.body.classList.toggle('stage', state.stage);
   const el = document.getElementById('view');
-  const html = state.view === 'detail' ? viewDetail()
+  /* Replay the reveal when the view or the data changes — never on the
+     one-minute clock tick, which would make the map twitch forever. */
+  const loaded = Object.keys(DATASETS).filter(k => state.ds[k].status === 'ok').length;
+  const key = state.view + ':' + loaded + ':' + (state.stage ? 's' : '') + ':' + state.lang;
+  state.animate = key !== state.animKey;
+  state.animKey = key;
+  const html = state.stage ? viewStage()
+    : state.view === 'detail' ? viewDetail()
     : state.view === 'quake' ? viewQuake()
     : state.view === 'typhoon' ? viewTyphoon() : viewHome();
   el.innerHTML = html;
   renderHeader();
+  clearTimeout(riseFailsafe);
+  riseFailsafe = setTimeout(dropReveal, 1400);
+  if (state.animate && state.view === 'quake' && document.querySelector('.waveg')) {
+    setTimeout(playQuakeWaves, 420);
+  }
 }
+let riseFailsafe = null;
+const dropReveal = () => document.querySelectorAll('.county.rise').forEach(el => el.classList.remove('rise'));
 function save() {
   try { localStorage.setItem('tw-alert', JSON.stringify({ lang: state.lang, county: state.county, source: state.source })); } catch (e) {}
 }
@@ -1854,6 +2263,12 @@ function wire() {
     if ((el = hit('[data-nav]'))) { go(el.getAttribute('data-nav')); return; }
     if ((el = hit('[data-retry]'))) { fetchDataset(el.getAttribute('data-retry')); return; }
     if ((el = hit('[data-action="refresh"]'))) { loadAll(); return; }
+    if ((el = hit('[data-action="waves"]'))) { playQuakeWaves(); return; }
+    if ((el = hit('[data-action="now"]'))) {
+      state.previewMs = 0;
+      const r = document.querySelector('[data-action="scrub"]'); if (r) r.value = 0;
+      render(); return;
+    }
     if ((el = hit('[data-action="back"]'))) { go('home'); return; }
     if ((el = hit('[data-quake]'))) { state.quakeId = el.getAttribute('data-quake'); go('quake'); return; }
     if ((el = hit('[data-cyclone]'))) { state.cycloneIdx = +el.getAttribute('data-cyclone'); render(); return; }
@@ -1861,13 +2276,24 @@ function wire() {
     if ((el = hit('[data-county]'))) { state.county = el.getAttribute('data-county'); save(); render(); return; }
   });
   document.addEventListener('keydown', e => {
+    const tag = (e.target && e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'select' || tag === 'textarea') return;
+    if (e.key === 'p' || e.key === 'P') { state.stage = !state.stage; render(); return; }
+    if (e.key === 'Escape' && state.stage) { state.stage = false; render(); return; }
     if (e.key !== 'Enter' && e.key !== ' ') return;
     const el = e.target.closest && e.target.closest('[data-county]');
     if (el) { e.preventDefault(); state.county = el.getAttribute('data-county'); save(); render(); }
   });
   document.addEventListener('change', e => {
     const el = e.target.closest && e.target.closest('select[data-action="county"]');
-    if (el) { state.county = el.value; save(); render(); }
+    if (el) { state.county = el.value; save(); render(); return; }
+    if (e.target.closest && e.target.closest('[data-action="scrub"]')) render();   /* settle the stream on release */
+  });
+  document.addEventListener('input', e => {
+    const r = e.target.closest && e.target.closest('[data-action="scrub"]');
+    if (!r) return;
+    state.previewMs = (+r.value / 1000) * (+r.getAttribute('data-span') || 0);
+    applyPreview();
   });
 }
 function boot() {
@@ -1879,9 +2305,12 @@ function boot() {
       state.source = !!o.source; }
   } catch (e) {}
   wire();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { dropReveal(); finishWaves(); } });
   rebuild();
   render();
   loadAll();
+  let rt = null;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { state.animKey = ''; render(); }, 180); });
   setInterval(() => { state.now = new Date(); if (state.view !== 'detail') render(); }, 60000);
   setInterval(loadAll, 300000);
 }
