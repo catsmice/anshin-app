@@ -28,7 +28,7 @@ open taiwan-alert.html      # macOS, or just double-click the file
 
 That hosted copy is this same file served straight from the repo by GitHub Pages. Nothing is built and nothing else is deployed.
 
-It also runs from `file://`. CWA's API sends `Access-Control-Allow-Origin: *`, so a local page is allowed to fetch it directly. The key already in the file (`rdec-key-123-45678-011121314`) is CWA's public demo key and needs no signup.
+It also runs from `file://`. CWA's API sends `Access-Control-Allow-Origin: *`, so a local page is allowed to fetch it directly. The key already in the file (`rdec-key-123-45678-011121314`) is CWA's public demo key and needs no signup. Every copy of this app shares it, so a deployment that expects traffic can pass its own with `?key=…` on the URL instead of competing for the demo key's quota. Registering for a CWA key is free.
 
 You need a browser from 2023 or later. The stylesheet uses CSS `color-mix()`, which means Chrome 111, Safari 16.2 or Firefox 113 and up.
 
@@ -45,6 +45,8 @@ Five datasets, fetched in parallel from `https://opendata.cwa.gov.tw/api/v1/rest
 | `W-C0034-005` | Tropical cyclone tracks |
 
 Each dataset has its own status row at the foot of the home screen: loaded and when, still loading, or failed with the error text and a retry button. A failed fetch never renders as "all clear". All five refetch every five minutes.
+
+Every successful response is also saved on the device, about 490 KB for all five. Connectivity is what fails during a typhoon or after an earthquake, so a reload without a connection paints Taiwan's last known state rather than five unavailable datasets. A saved copy is always labelled as one, with the time it was fetched and the error that stopped the refresh, and expiry is still judged against the real clock, so a warning that lapsed while you were offline stops being in force.
 
 ## How severity is decided
 
@@ -89,7 +91,7 @@ Notes for anyone else building on these feeds. Each of these is handled in the c
 - Some phenomena affect sub-county descriptors (`南投地區`, `山區`, `蘭嶼綠島`) that resolve to no county at all. That is correct, and they still have to show up somewhere instead of vanishing.
 - Typhoon data keeps serving a cyclone's last known track long after it has passed. Anshin treats a latest fix older than 12 hours as inactive.
 - CWA writes the orthodox `臺`, not `台`. The county lookup matches both spellings, and maps `恆春半島` up to Pingtung County.
-- Intensity is a ten-tier scale written as strings with two different suffixes: `0級 1級 2級 3級 4級 5弱 5強 6弱 6強 7級`. Sorted as text, `5弱` lands in the wrong place. Anshin treats them as an ordinal 0 to 9.
+- Intensity is a ten-tier scale written as strings with two different suffixes: `0級 1級 2級 3級 4級 5弱 5強 6弱 6強 7級`. A plain code-unit sort happens to put them in the right order, which is what makes this one dangerous: it looks safe until someone sorts with `localeCompare` under `ja-JP`, the locale this app already uses for Japanese, and `5強` comes out before `5弱`. Anshin ranks them on an ordinal 0 to 9 and never compares the strings.
 
 ## The maps
 
@@ -122,6 +124,10 @@ The same screen in 繁體中文. Switching language reprints everything, includi
 Japanese place names are folded to shinjitai, so `花蓮縣` reads as `花蓮県` and `臺東縣政府` becomes `台東県庁`.
 
 CWA gives the epicenter only in Chinese, in a fixed pattern: `臺東縣政府東南東方 43.0 公里 (位於臺灣東南部海域)`. The distance is measured from the county government office, so the English reads `43.0 km ESE of Taitung County Hall`. When the parenthetical only repeats the county already named, it is dropped, so `花蓮縣政府南方 3.2 公里 (位於花蓮縣近海)` becomes `3.2 km S of Hualien County Hall, offshore`. Intensity values are translated as well: `5弱` is `5-lower` in English and `震度5弱` in Japanese, with a line noting that this is Taiwan's ten-tier shaking scale and not magnitude.
+
+## Reading it without seeing it
+
+Every update replaces the view's HTML in one go, which tells a screen reader nothing. A live region in the page shell, outside the replaced subtree, announces the selected county's level whenever that sentence changes, and switches from polite to assertive when the level is severe. It stays quiet on the one-minute clock tick. Animations are skipped under `prefers-reduced-motion`, and the map has a plain `<select>` beside it for anyone who would rather not tab through 22 county shapes.
 
 ## Extras for a live audience
 
@@ -160,6 +166,16 @@ Nothing in the interface reads a CWA record directly. Every hazard first becomes
 State lives in a single `state` object, and every view is a function that returns an HTML string. Language, selected county and the Show source setting persist in localStorage.
 
 When the script runs without a `document`, its last block puts the parsers, the severity functions and the projection on `module.exports`, so they can be pulled into a Node test harness.
+
+## Tests
+
+```sh
+node --test
+```
+
+Nothing to install. `test/load-app.js` reads `taiwan-alert.html`, pulls the `<script>` out and runs it in the host realm, which is what the `module.exports` block at the end of the app is for. Running it in a `vm` context instead would be neater, but objects that cross a realm boundary carry a different `Array.prototype` and `assert.deepStrictEqual` rejects them.
+
+The cases are the traps listed above: the offset-less timestamps, the reused `EarthquakeNo`, the `observe` rows winning over the summary rows, the 22 counties that always come back, `contents.content` as an object and as an array, and the epicenter translation. Severity is covered tier by tier, including the rule that an unrecognised 特報 becomes an advisory rather than info.
 
 ## License
 
