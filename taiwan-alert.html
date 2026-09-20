@@ -221,6 +221,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:50;
   padding:6px 0;border-top:1px solid var(--line)}
 .ds .pip{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
 .ok{background:#1E8A57} .bad{background:var(--severe)} .wait{background:var(--ink3)}
+.stale{background:var(--warning)}
 .note{font-size:12px;color:var(--ink3);line-height:1.55}
 .disclaim{margin:26px 0 8px;padding:12px 13px;border:1px dashed var(--line2);border-radius:12px;
   font-size:11.5px;color:var(--ink3);line-height:1.6;background:rgba(255,255,255,.45)}
@@ -253,6 +254,7 @@ select{background:#FFFFFF;color:var(--ink);border:1px solid var(--line2);border-
     <button class="srcbtn" id="srcBtn" aria-pressed="false"><span class="dot"></span><span id="srcLabel">Show source</span></button>
   </div>
 </header>
+<div id="live" class="sr" role="status" aria-live="polite" aria-atomic="true"></div>
 <main><div class="wrap" id="view"></div></main>
 <nav class="bottom"><div class="nav-in" id="nav"></div></nav>
 <script>
@@ -265,7 +267,17 @@ select{background:#FFFFFF;color:var(--ink);border:1px solid var(--line2);border-
 
 /* ----------------------------- 1. CONSTANTS ------------------------- */
 
-const CWA_KEY = 'rdec-key-123-45678-011121314';
+/* CWA's public demo key, which needs no signup. Every copy of this app shares
+   it, so a deployment can pass its own with ?key=… and stop competing for the
+   demo key's quota. */
+const CWA_DEMO_KEY = 'rdec-key-123-45678-011121314';
+const CWA_KEY = (() => {
+  try {
+    const k = new URLSearchParams(location.search).get('key');
+    if (k && /^[A-Za-z0-9-]{10,80}$/.test(k)) return k;
+  } catch (e) {}
+  return CWA_DEMO_KEY;
+})();
 const CWA_URL = id => `https://opendata.cwa.gov.tw/api/v1/rest/datastore/${id}?Authorization=${CWA_KEY}&format=JSON`;
 
 const DATASETS = {
@@ -618,6 +630,14 @@ const STR = {
   quakeHeadline:{en:'M{m} earthquake · max intensity {i} in {c}', zh:'規模 {m} 地震 · {c}最大震度 {i}', ja:'M{m} の地震 · {c}で最大{i}'},
   quakeBody:{en:'A magnitude {m} earthquake struck at {t} Taiwan time, {loc}, at {d} km depth. Strongest observed shaking: intensity {i} in {c}.', zh:'{t}（臺灣時間）發生規模 {m} 地震，震央位於{loc}，深度 {d} 公里。最大觀測震度 {i}（{c}）。', ja:'台湾時間 {t}、{loc}でM{m}の地震が発生（深さ {d} km）。最大観測震度は{c}の{i}です。'},
   typhoonHeadline:{en:'Tropical cyclone {name} · {d} km from Taiwan', zh:'熱帶氣旋 {name} · 距臺灣 {d} 公里', ja:'熱帯低気圧 {name} · 台湾から {d} km'},
+  typhoonBody:{en:'CWA is tracking tropical cyclone {name}, {d} km from Taiwan and bearing {dir} from it, as last analysed {from} Taiwan time. Nearest counties: {areas}.', zh:'氣象署正在追蹤熱帶氣旋{name}，最新定位時間 {from}（臺灣時間），距離臺灣 {d} 公里，位於臺灣的{dir}方。鄰近縣市：{areas}。', ja:'気象署は熱帯低気圧{name}を監視中です。台湾時間 {from} の解析で台湾から {d} km、方位は{dir}。近隣の県市：{areas}。'},
+  announceActive:{en:'Alert level {s} for {c}. {n} warning(s) in force.', zh:'{c} 警戒等級 {s}，{n} 則警報生效中。', ja:'{c} の警戒レベルは{s}。{n} 件の警報が発表中です。'},
+  announceClear:{en:'No warnings in force for {c}.', zh:'{c} 目前沒有生效中的警報。', ja:'{c} に発表中の警報はありません。'},
+  savedCopy:{en:'SAVED COPY', zh:'本機暫存', ja:'保存データ'},
+  savedAt:{en:'saved {t}', zh:'{t} 存下', ja:'{t} 保存'},
+  staleTitle:{en:'Showing data saved on this device', zh:'目前顯示本機先前存下的資料', ja:'この端末に保存されたデータを表示しています'},
+  staleBody:{en:'{n} dataset(s) could not be refreshed. What you see was last fetched from CWA at {t} and may be out of date. Anything issued since then is not shown.', zh:'有 {n} 項資料無法更新。目前顯示的內容最後一次自氣象署取得的時間為 {t}，可能已非最新；在那之後發布的訊息不會出現。', ja:'{n} 件のデータを更新できませんでした。表示中の内容は {t} に気象署から取得したもので、最新ではない可能性があります。それ以降に発表されたものは表示されません。'},
+  staleNote:{en:'Some datasets could not be refreshed, so a saved copy is shown. It is not a live reading.', zh:'部分資料無法更新，因此顯示本機存下的版本，並非即時資料。', ja:'一部のデータを更新できないため、保存済みの内容を表示しています。リアルタイムの値ではありません。'},
   and:{en:' and ', zh:'、', ja:'、'},
   listSep:{en:', ', zh:'、', ja:'、'}
 };
@@ -941,24 +961,64 @@ const sevHex = s => ({ severe:'#DE3A26', warning:'#EE8B16', advisory:'#EFCB39', 
 
 const arr = x => Array.isArray(x) ? x : (x == null ? [] : [x]);
 
+/* Connectivity is the thing that fails during a typhoon or after a quake, so
+   every successful response is kept on the device. A saved copy is always
+   labelled as one: it is what CWA last said, not what CWA says now. */
+const CACHE_KEY = k => 'tw-alert-cache:' + k;
+function cacheWrite(key, json, at) {
+  try { localStorage.setItem(CACHE_KEY(key), JSON.stringify({ at: +at, json })); } catch (e) {}
+}
+function cacheRead(key) {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY(key));
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    return (o && o.json && o.at) ? { json: o.json, at: new Date(o.at) } : null;
+  } catch (e) { return null; }
+}
+function hydrateFromCache() {
+  let n = 0;
+  for (const k in DATASETS) {
+    const c = cacheRead(k);
+    if (!c) continue;
+    state.ds[k] = { status: 'cached', data: c.json, error: null, at: c.at, refreshing: false };
+    n++;
+  }
+  return n;
+}
+
 async function fetchDataset(key) {
   const ds = DATASETS[key];
-  state.ds[key] = { status: 'loading', data: null, error: null, at: null };
+  const prev = state.ds[key] || {};
+  /* Hold the last-known data on screen while the refetch is in flight. An
+     empty map during a reconnect is worse than a labelled saved copy. */
+  state.ds[key] = prev.data
+    ? { ...prev, refreshing: true }
+    : { status: 'loading', data: null, error: null, at: null, refreshing: true };
   render();
   try {
     const res = await fetch(CWA_URL(ds.id), { mode: 'cors', cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
     const json = await res.json();
     if (String(json.success) !== 'true') throw new Error('CWA envelope success = ' + fmtRaw(json.success));
-    state.ds[key] = { status: 'ok', data: json, error: null, at: new Date() };
+    const at = new Date();
+    state.ds[key] = { status: 'ok', data: json, error: null, at, refreshing: false };
+    cacheWrite(key, json, at);
   } catch (err) {
-    state.ds[key] = { status: 'error', data: null, error: (err && err.message) || String(err), at: new Date() };
+    const msg = (err && err.message) || String(err);
+    /* A failed refresh must not read as "all clear", and it need not throw away
+       what CWA last told us either. Fall back to the saved copy and say so;
+       report nothing only when there is nothing saved. */
+    const saved = prev.data ? { json: prev.data, at: prev.at } : cacheRead(key);
+    state.ds[key] = saved
+      ? { status: 'cached', data: saved.json, error: msg, at: saved.at, refreshing: false }
+      : { status: 'error', data: null, error: msg, at: new Date(), refreshing: false };
   }
   rebuild();
   render();
 }
 const loadAll = () => Object.keys(DATASETS).forEach(fetchDataset);
-const dsOk = key => state.ds[key].status === 'ok' ? state.ds[key].data : null;
+const dsOk = key => (state.ds[key].status === 'ok' || state.ds[key].status === 'cached') ? state.ds[key].data : null;
 
 /* ---- weather: W-C0033-001 (counties) + W-C0033-002 (narrative) ---- */
 function buildWeatherAlerts() {
@@ -1549,8 +1609,8 @@ function alertBody(a) {
       i: intensityLabel(q.maxIdx), c: q.maxCode ? countyLabel(q.maxCode) : '—' });
   }
   const c = a.payload, f = c.latest || {};
-  return t('weatherBody', { p: cycloneName(c), sig: '', areas: regionNames(a, 6) || '—',
-    from: fmtDTp(f.time), to: fmtDTp(a.expiresAt) }).replace(/\s+\(\)/, '');
+  return t('typhoonBody', { name: cycloneName(c), d: c.distanceKm != null ? Math.round(c.distanceKm) : '?',
+    dir: dirLabel(c.bearingPoint), from: fmtDTp(f.time), areas: regionNames(a, 6) || '—' });
 }
 function alertProv(a) {
   const p = a.payload;
@@ -1598,24 +1658,38 @@ function alertCard(a) {
 function dataPanel() {
   const rows = Object.keys(DATASETS).map(key => {
     const ds = DATASETS[key], s = state.ds[key];
-    const pip = s.status === 'ok' ? 'ok' : s.status === 'error' ? 'bad' : 'wait';
+    const pip = s.status === 'ok' ? 'ok' : s.status === 'error' ? 'bad' : s.status === 'cached' ? 'stale' : 'wait';
     const right = s.status === 'ok' ? t('loadedAt', { t: fmtClock(s.at) })
+      : s.status === 'cached' ? `<span style="color:var(--warning)">${esc(t('savedCopy'))}</span> · ${esc(t('savedAt', { t: fmtClock(s.at) }))}${s.error ? ' · ' + esc(s.error) : ''}`
       : s.status === 'error' ? `<span style="color:var(--severe)">${esc(t('failed'))}</span> · ${esc(s.error)}`
       : t('loading');
     return `<div class="ds"><span class="pip ${pip}"></span><b style="color:var(--ink2)">${esc(ds.id)}</b>
       <span style="flex:1;min-width:0;color:var(--ink3)">${esc(L(ds.desc))}</span>
       <span style="text-align:right">${right}</span>
-      ${s.status === 'error' ? `<button class="chip" data-retry="${key}">${esc(t('retry'))}</button>` : ''}</div>`;
+      ${s.status === 'error' || s.status === 'cached' ? `<button class="chip" data-retry="${key}">${esc(t('retry'))}</button>` : ''}</div>`;
   }).join('');
   const anyFail = Object.keys(DATASETS).some(k => state.ds[k].status === 'error');
+  const anyStale = Object.keys(DATASETS).some(k => state.ds[k].status === 'cached');
   return `<div class="card pad">
     <div class="micro" style="margin-bottom:6px">${esc(t('dataStatus'))}</div>
     ${rows}
     ${anyFail ? `<div class="note" style="color:var(--severe);margin-top:8px">${esc(t('failedNote'))}</div>` : ''}
+    ${anyStale ? `<div class="note" style="color:var(--warning);margin-top:8px">${esc(t('staleNote'))}</div>` : ''}
     <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
       <button class="chip" data-action="refresh">${esc(t('refresh'))} ↻</button>
       <span class="time">${esc(fmtFull(state.now))}</span>
     </div></div>`;
+}
+
+/* Saying so once, loudly, at the top of the screen the worried person reads. */
+function stalenessBanner() {
+  const stale = Object.keys(DATASETS).filter(k => state.ds[k].status === 'cached');
+  if (!stale.length) return '';
+  const oldest = stale.map(k => state.ds[k].at).filter(Boolean).sort((a, b) => a - b)[0];
+  return `<div class="status sev-warning"><span class="sevchip">${esc(t('savedCopy'))}</span><div>
+    <div>${esc(t('staleTitle'))}</div>
+    <div class="note" style="margin-top:4px">${esc(t('staleBody', { n: stale.length, t: oldest ? fmtFull(oldest) : '—' }))}</div>
+  </div></div>`;
 }
 
 function viewHome() {
@@ -1675,6 +1749,7 @@ function viewHome() {
       ${hero}
       <div class="status" id="previewBanner" style="${state.previewMs ? '' : 'display:none'}">${esc(t('projected', { t: fmtFull(viewNow()) }))}</div>
       ${timelineCard()}
+      ${stalenessBanner()}
       ${status}
     </div>
     <div class="grid" style="gap:12px">
@@ -1685,7 +1760,6 @@ function viewHome() {
       <div class="sect"><span class="micro">${esc(t('latestQuake'))}</span><span class="line"></span></div>
       ${quakeBlock}
       <div class="note" style="margin-top:2px">${esc(t('latestQuakeNote'))}</div>
-      <div class="sect"><span class="micro">${esc(t('dataStatus'))}</span><span class="line"></span></div>
       ${dataPanel()}
     </div>
   </div>
@@ -2261,6 +2335,23 @@ function viewStage() {
 }
 /* Tab icon: the island itself, filled with whatever severity is in force in
    your county right now. Same geometry, same projection as every other map. */
+/* Screen readers get no signal from an innerHTML swap, so the county's current
+   state is spoken from a live region in the shell, and only when the sentence
+   itself changes — never on the one-minute clock tick. */
+let lastSpoken = '';
+function announce() {
+  const el = document.getElementById('live');
+  if (!el) return;
+  const mine = activeAlerts().filter(a => a.affectedRegions.includes(state.county));
+  const top = mine.length ? worstOf(mine.map(a => a.severity)) : 'none';
+  const msg = mine.length
+    ? t('announceActive', { c: countyLabel(state.county), s: sevLabel(top), n: mine.length })
+    : t('announceClear', { c: countyLabel(state.county) });
+  if (msg === lastSpoken) return;
+  lastSpoken = msg;
+  el.setAttribute('aria-live', top === 'severe' ? 'assertive' : 'polite');
+  el.textContent = msg;
+}
 let favKey = '';
 function updateFavicon() {
   const link = document.getElementById('favicon');
@@ -2310,6 +2401,7 @@ function render() {
   el.innerHTML = html;
   renderHeader();
   updateFavicon();
+  announce();
   clearTimeout(riseFailsafe);
   riseFailsafe = setTimeout(dropReveal, 1400);
   /* innerHTML replaced the nodes the loop was driving, so re-arm it here:
@@ -2388,6 +2480,7 @@ function boot() {
     finishWaves();
     if (state.waveLoop && state.view === 'quake' && document.querySelector('.waveg')) playQuakeWaves();
   });
+  hydrateFromCache();
   rebuild();
   render();
   loadAll();
