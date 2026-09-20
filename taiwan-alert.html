@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Taiwan Alert — live CWA hazard information in English, 中文, 日本語</title>
+<meta name="color-scheme" content="light">
+<style>
+/* ---------------------------------------------------------------------
+   Light theme: a civil-defence notice printed on paper. Warm off-white
+   stock, ink-black type, hairline rules, and severity colour as the only
+   saturated thing anywhere on the page.
+   --------------------------------------------------------------------- */
+:root{
+  --paper:#F5F3EE; --bg:#F5F3EE; --bg2:#EDEAE2; --panel:#FFFFFF; --panel2:#FAF8F3;
+  --line:rgba(17,22,27,.11); --line2:rgba(17,22,27,.24);
+  --ink:#14191E; --ink2:#4E5A65; --ink3:#5C6771;
+  --severe:#C4190B; --warning:#AD5A00; --advisory:#836200; --info:#1A6CB5;
+  --none:#E4E8EC; --none-line:#B4BEC7;
+  --focus:#1A6CB5;
+  --font:"Avenir Next","Avenir","Segoe UI","PingFang TC","Hiragino Sans","Noto Sans TC","Noto Sans JP",sans-serif;
+  --mono:"SF Mono",ui-monospace,"JetBrains Mono","IBM Plex Mono",Menlo,"Roboto Mono",monospace;
+  --shadow:0 1px 2px rgba(20,25,30,.06);
+  --r:14px;
+  --maxw:1160px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font);
+  font-size:15px; line-height:1.5; letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom));
+  background-image:
+    radial-gradient(1100px 560px at 50% -12%, rgba(26,108,181,.08), transparent 62%),
+    repeating-linear-gradient(0deg, rgba(17,22,27,.017) 0 1px, transparent 1px 3px);
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--info);text-underline-offset:2px}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.01em}
+.wrap{max-width:var(--maxw);margin:0 auto;padding:0 16px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.micro{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink3)}
+
+/* ---------- header ---------- */
+header.top{
+  position:sticky;top:0;z-index:40;
+  background:linear-gradient(180deg, rgba(245,243,238,.98), rgba(245,243,238,.88));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.top-in{max-width:var(--maxw);margin:0 auto;padding:10px 16px;
+  padding-top:calc(10px + env(safe-area-inset-top));display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:8px;margin-right:auto;min-width:0}
+.brand .mark{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--ink);
+  border:1px solid var(--ink);border-radius:4px;padding:3px 6px 2px}
+.brand .sub{font-size:11px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg{display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{padding:5px 9px;font-size:12px;color:var(--ink2);line-height:1.2}
+.seg button[aria-pressed="true"]{background:var(--ink);color:#FCFBF8;font-weight:600}
+.seg button+button{border-left:1px solid var(--line2)}
+.srcbtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line2);border-radius:8px;
+  padding:5px 10px;font-size:12px;color:var(--ink2);background:var(--panel)}
+.srcbtn .dot{width:7px;height:7px;border-radius:50%;background:var(--ink3)}
+body.src .srcbtn{border-color:var(--info);color:var(--info)}
+body.src .srcbtn .dot{background:var(--info);box-shadow:0 0 0 3px rgba(26,108,181,.16)}
+
+/* ---------- generic blocks ---------- */
+main{padding-top:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow)}
+.pad{padding:14px}
+.sect{margin:22px 0 10px;display:flex;align-items:center;gap:10px}
+.sect .line{flex:1;height:1px;background:var(--line2)}
+.grid{display:grid;gap:12px}
+@media(min-width:900px){ .cols{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);align-items:start} }
+
+/* ---------- severity ---------- */
+.sev-severe{--sev:var(--severe)} .sev-warning{--sev:var(--warning)}
+.sev-advisory{--sev:var(--advisory)} .sev-info{--sev:var(--info)} .sev-none{--sev:var(--none-line)}
+.sevchip{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;flex:0 0 auto;
+  font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--sev);
+  border:1px solid color-mix(in srgb, var(--sev) 42%, transparent);
+  background:color-mix(in srgb, var(--sev) 9%, #FFFFFF);border-radius:999px;padding:3px 8px 2px}
+.hero{border-radius:var(--r);border:1px solid color-mix(in srgb, var(--sev) 32%, var(--line));
+  background:linear-gradient(135deg, color-mix(in srgb, var(--sev) 11%, #FFFFFF), var(--panel) 72%);
+  padding:14px;display:flex;gap:14px;align-items:center;box-shadow:var(--shadow)}
+.hero .bar{width:4px;align-self:stretch;border-radius:2px;background:var(--sev)}
+.hero .word{font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1.1;color:var(--sev)}
+.hero .where{font-size:13px;color:var(--ink2);margin-top:3px}
+@media(min-width:420px){ .hero .word{font-size:30px} }
+
+/* ---------- alert card ---------- */
+.alert{display:block;width:100%;text-align:left;background:var(--panel);border:1px solid var(--line);
+  border-left:3px solid var(--sev);border-radius:12px;padding:12px 13px;box-shadow:var(--shadow);
+  transition:background .15s ease, transform .15s ease}
+.alert:hover{background:var(--panel2)}
+.alert:active{transform:scale(.995)}
+.alert h3{font-size:16px;line-height:1.3;margin:6px 0 0}
+.alert .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.alert .body{font-size:13.5px;color:var(--ink2);margin-top:6px}
+.chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;color:var(--ink2);
+  border:1px solid var(--line2);background:var(--bg2);border-radius:5px;padding:3px 6px 2px;white-space:nowrap}
+.chip.me{border-color:var(--ink);color:var(--ink);background:#FFFFFF}
+.chip.ghost{border-style:dashed;color:var(--ink3);background:transparent}
+.time{font-family:var(--mono);font-size:11px;color:var(--ink3);letter-spacing:.02em}
+
+/* ---------- field rows ---------- */
+.field{border-top:1px solid var(--line);padding:9px 0}
+.field:first-child{border-top:0}
+.field .row{display:flex;gap:12px;align-items:baseline;justify-content:space-between}
+.field .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3);flex:0 0 auto}
+.field .v{text-align:right;font-family:var(--mono);font-size:14px;letter-spacing:-.01em;min-width:0;word-break:break-word}
+.field .v.txt{font-family:var(--font);font-size:14px}
+.big{font-size:28px!important;line-height:1.1}
+
+/* ---------- provenance ---------- */
+.prov{display:none}
+body.src .prov{
+  display:block;margin:7px 0 2px;padding:8px 9px;border-radius:8px;
+  border:1px solid rgba(26,108,181,.24);border-left:2px solid var(--info);
+  background:rgba(26,108,181,.05);font-family:var(--mono);font-size:10.5px;line-height:1.55;color:#2B5473;
+  overflow-wrap:anywhere;word-break:break-word}
+.prov b{color:#123349;font-weight:600}
+.prov .tag{display:inline-block;border:1px solid rgba(26,108,181,.42);border-radius:4px;padding:1px 5px;
+  margin-right:6px;letter-spacing:.1em;text-transform:uppercase;font-size:9px;color:#155E9F}
+.prov .tag.calc{border-color:rgba(131,98,0,.45);color:#7A5C00}
+.prov .raw{color:var(--ink);background:rgba(17,22,27,.06);border-radius:3px;padding:0 4px;word-break:break-all}
+.prov ul{margin:4px 0 0;padding-left:16px}
+body.src .annotated{text-decoration:underline dotted rgba(26,108,181,.5);text-underline-offset:3px}
+
+/* ---------- map ---------- */
+.mapwrap{position:relative;background:linear-gradient(180deg,#CFE0EF,#C3D7E9);border-radius:var(--r);
+  border:1px solid var(--line);overflow:hidden;box-shadow:var(--shadow)}
+.mapwrap svg{display:block;width:100%;max-width:470px;height:auto;margin:0 auto}
+.county{cursor:pointer;transition:opacity .15s ease}
+.county:hover{opacity:.82}
+.maplabel{font-family:var(--mono);font-size:8.5px;fill:#3F4A55;letter-spacing:.1em;text-transform:uppercase}
+.insetbox{fill:rgba(255,255,255,.4);stroke:rgba(17,22,27,.3);stroke-width:1;stroke-dasharray:3 3}
+.legend{display:flex;flex-wrap:wrap;gap:8px;padding:9px 11px;border-top:1px solid var(--line);background:var(--bg2)}
+.maphead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px 3px}
+.wide-only{display:none}
+@media(min-width:620px){ .wide-only{display:inline} }
+@media(max-width:520px){ .brand .sub{display:none} }
+.legend .li{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink3)}
+.legend .sw{width:10px;height:10px;border-radius:3px;border:1px solid rgba(17,22,27,.2)}
+.scalebar{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;color:var(--ink3)}
+
+/* ---------- nav ---------- */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:50;
+  background:linear-gradient(180deg, rgba(245,243,238,.9), rgba(245,243,238,.99));
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--line2);padding-bottom:env(safe-area-inset-bottom)}
+.nav-in{max-width:var(--maxw);margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+.nav-in button{padding:11px 4px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.nav-in button[aria-current="page"]{color:var(--ink)}
+.nav-in button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.5}
+
+/* ---------- misc ---------- */
+.status{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:12px;
+  border:1px solid var(--line);background:var(--panel);font-size:13.5px;color:var(--ink2);box-shadow:var(--shadow)}
+.ds{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;color:var(--ink3);
+  padding:6px 0;border-top:1px solid var(--line)}
+.ds .pip{width:7px;height:7px;border-radius:50%;flex:0 0 auto}
+.ok{background:#1E8A57} .bad{background:var(--severe)} .wait{background:var(--ink3)}
+.note{font-size:12px;color:var(--ink3);line-height:1.55}
+.disclaim{margin:26px 0 8px;padding:12px 13px;border:1px dashed var(--line2);border-radius:12px;
+  font-size:11.5px;color:var(--ink3);line-height:1.6;background:rgba(255,255,255,.45)}
+.backbtn{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink2);padding:7px 0}
+.skel{background:linear-gradient(90deg,#EFEDE7,#F8F7F4,#EFEDE7);background-size:200% 100%;
+  animation:sh 1.4s linear infinite;border-radius:10px}
+@keyframes sh{to{background-position:-200% 0}}
+.fade{animation:fade .35s ease both}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+select{background:#FFFFFF;color:var(--ink);border:1px solid var(--line2);border-radius:8px;
+  padding:6px 8px;font-size:12px;font-family:var(--mono)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:6px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-family:var(--mono);font-size:12px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;
+    transition-duration:.001ms!important;scroll-behavior:auto!important}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <span class="mark">TW·ALERT</span>
+      <span class="sub" id="brandSub">Live CWA open data · unofficial</span>
+    </div>
+    <div class="seg" id="langSeg" role="group" aria-label="Language"></div>
+    <button class="srcbtn" id="srcBtn" aria-pressed="false"><span class="dot"></span><span id="srcLabel">Show source</span></button>
+  </div>
+</header>
+<main><div class="wrap" id="view"></div></main>
+<nav class="bottom"><div class="nav-in" id="nav"></div></nav>
+<script>
+'use strict';
+/* =====================================================================
+   TAIWAN ALERT — one file, no dependencies, live CWA open data.
+   Sections: 1 constants · 2 i18n · 3 utils · 4 translation · 5 severity
+             6 fetch+normalise · 7 projection/maps · 8 views · 9 boot
+   ===================================================================== */
+
+/* ----------------------------- 1. CONSTANTS ------------------------- */
+
+const CWA_KEY = 'rdec-key-123-45678-011121314';
+const CWA_URL = id => `https://opendata.cwa.gov.tw/api/v1/rest/datastore/${id}?Authorization=${CWA_KEY}&format=JSON`;
+
+const DATASETS = {
+  warnCounty : { id:'W-C0033-001', kind:'weather',    desc:{en:'Weather warnings by county', zh:'天氣警特報-各縣市', ja:'気象警報（県市別）'} },
+  warnText   : { id:'W-C0033-002', kind:'weather',    desc:{en:'Weather warning narrative', zh:'天氣警特報-內容', ja:'気象警報（本文）'} },
+  quakeBig   : { id:'E-A0015-001', kind:'earthquake', desc:{en:'Significant earthquake reports', zh:'顯著有感地震報告', ja:'顕著な有感地震報告'} },
+  quakeSmall : { id:'E-A0016-001', kind:'earthquake', desc:{en:'Small-area earthquake reports', zh:'小區域有感地震報告', ja:'小地域有感地震報告'} },
+  typhoon    : { id:'W-C0034-005', kind:'typhoon',    desc:{en:'Tropical cyclone tracks', zh:'熱帶氣旋路徑', ja:'熱帯低気圧経路'} }
+};
+
+/* ISO 3166-2:TW ←→ the Chinese names CWA actually publishes. */
+const COUNTIES = [
+  { code:'TW-TPE', zh:'臺北市', en:'Taipei City',       ja:'台北市',   hallJa:'台北市役所' },
+  { code:'TW-NWT', zh:'新北市', en:'New Taipei City',   ja:'新北市',   hallJa:'新北市役所' },
+  { code:'TW-TAO', zh:'桃園市', en:'Taoyuan City',      ja:'桃園市',   hallJa:'桃園市役所' },
+  { code:'TW-TXG', zh:'臺中市', en:'Taichung City',     ja:'台中市',   hallJa:'台中市役所' },
+  { code:'TW-TNN', zh:'臺南市', en:'Tainan City',       ja:'台南市',   hallJa:'台南市役所' },
+  { code:'TW-KHH', zh:'高雄市', en:'Kaohsiung City',    ja:'高雄市',   hallJa:'高雄市役所' },
+  { code:'TW-KEE', zh:'基隆市', en:'Keelung City',      ja:'基隆市',   hallJa:'基隆市役所' },
+  { code:'TW-HSZ', zh:'新竹市', en:'Hsinchu City',      ja:'新竹市',   hallJa:'新竹市役所' },
+  { code:'TW-HSQ', zh:'新竹縣', en:'Hsinchu County',    ja:'新竹県',   hallJa:'新竹県庁' },
+  { code:'TW-MIA', zh:'苗栗縣', en:'Miaoli County',     ja:'苗栗県',   hallJa:'苗栗県庁' },
+  { code:'TW-CHA', zh:'彰化縣', en:'Changhua County',   ja:'彰化県',   hallJa:'彰化県庁' },
+  { code:'TW-NAN', zh:'南投縣', en:'Nantou County',     ja:'南投県',   hallJa:'南投県庁' },
+  { code:'TW-YUN', zh:'雲林縣', en:'Yunlin County',     ja:'雲林県',   hallJa:'雲林県庁' },
+  { code:'TW-CYI', zh:'嘉義市', en:'Chiayi City',       ja:'嘉義市',   hallJa:'嘉義市役所' },
+  { code:'TW-CYQ', zh:'嘉義縣', en:'Chiayi County',     ja:'嘉義県',   hallJa:'嘉義県庁' },
+  { code:'TW-PIF', zh:'屏東縣', en:'Pingtung County',   ja:'屏東県',   hallJa:'屏東県庁' },
+  { code:'TW-ILA', zh:'宜蘭縣', en:'Yilan County',      ja:'宜蘭県',   hallJa:'宜蘭県庁' },
+  { code:'TW-HUA', zh:'花蓮縣', en:'Hualien County',    ja:'花蓮県',   hallJa:'花蓮県庁' },
+  { code:'TW-TTT', zh:'臺東縣', en:'Taitung County',    ja:'台東県',   hallJa:'台東県庁' },
+  { code:'TW-PEN', zh:'澎湖縣', en:'Penghu County',     ja:'澎湖県',   hallJa:'澎湖県庁' },
+  { code:'TW-KIN', zh:'金門縣', en:'Kinmen County',     ja:'金門県',   hallJa:'金門県庁' },
+  { code:'TW-LIE', zh:'連江縣', en:'Lienchiang County', ja:'連江県',   hallJa:'連江県庁' }
+];
+const BY_CODE = Object.fromEntries(COUNTIES.map(c => [c.code, c]));
+
+/* CWA writes the orthodox 臺; plenty of prose uses 台. Index both, plus the
+   sub-county descriptors that legitimately roll up to a county. */
+const ZH_TO_CODE = (() => {
+  const m = Object.create(null);
+  for (const c of COUNTIES) {
+    m[c.zh] = c.code;
+    m[c.zh.replace(/臺/g, '台')] = c.code;
+    m[c.zh.replace(/[縣市]$/, '')] = c.code;                       // 花蓮 → TW-HUA
+    m[c.zh.replace(/臺/g, '台').replace(/[縣市]$/, '')] = c.code;  // 台東 → TW-TTT
+  }
+  m['恆春半島'] = 'TW-PIF';  m['恒春半島'] = 'TW-PIF';
+  return m;
+})();
+
+/* Descriptors CWA uses that are NOT a county: they must still be shown. */
+const SUBREGION_NAMES = {
+  '蘭嶼綠島': { en:'Lanyu & Lyudao (Orchid & Green Islands)', ja:'蘭嶼・緑島' },
+  '蘭嶼':     { en:'Lanyu (Orchid Island)', ja:'蘭嶼' },
+  '綠島':     { en:'Lyudao (Green Island)', ja:'緑島' },
+  '馬祖':     { en:'Matsu', ja:'馬祖' },
+  '山區':     { en:'mountain areas', ja:'山間部' },
+  '北部山區': { en:'northern mountain areas', ja:'北部山間部' },
+  '中部山區': { en:'central mountain areas', ja:'中部山間部' },
+  '南部山區': { en:'southern mountain areas', ja:'南部山間部' },
+  '東部地區': { en:'eastern Taiwan', ja:'東部地区' },
+  '西半部':   { en:'western Taiwan', ja:'西半部' },
+  '基隆北海岸': { en:'Keelung north coast', ja:'基隆北海岸' }
+};
+
+/* Ten-tier CWA shaking scale, encoded as strings that mix two suffixes. */
+const INTENSITY_SCALE = ['0級','1級','2級','3級','4級','5弱','5強','6弱','6強','7級'];
+const INTENSITY_LABEL = {
+  en: ['0','1','2','3','4','5-lower','5-upper','6-lower','6-upper','7'],
+  zh: ['0級','1級','2級','3級','4級','5弱','5強','6弱','6強','7級'],
+  ja: ['震度0','震度1','震度2','震度3','震度4','震度5弱','震度5強','震度6弱','震度6強','震度7']
+};
+const INTENSITY_COLOR = ['#DCE6F0','#9FC4E4','#5A9BD0','#5BBFC1','#EFD23F','#F3A32F','#E9761F','#D9422A','#B9251B','#86140F'];
+
+/* Weather phenomena: name + severity class + what to actually do. */
+const PHENOMENA = {
+  '超大豪雨': { sev:'severe',   en:'Extremely Torrential Rain', ja:'超大豪雨' },
+  '大豪雨':   { sev:'severe',   en:'Torrential Rain',           ja:'大豪雨' },
+  '豪雨':     { sev:'severe',   en:'Extremely Heavy Rain',      ja:'豪雨' },
+  '大雨':     { sev:'warning',  en:'Heavy Rain',                ja:'大雨' },
+  '大雷雨':   { sev:'advisory', en:'Thunderstorm',              ja:'激しい雷雨' },
+  '陸上強風': { sev:'advisory', en:'Strong Wind (land)',        ja:'陸上強風' },
+  '海上強風': { sev:'advisory', en:'Strong Wind (sea)',         ja:'海上強風' },
+  '強風':     { sev:'advisory', en:'Strong Wind',               ja:'強風' },
+  '濃霧':     { sev:'advisory', en:'Dense Fog',                 ja:'濃霧' },
+  '低溫':     { sev:'advisory', en:'Low Temperature',           ja:'低温' },
+  '高溫':     { sev:'advisory', en:'High Temperature',          ja:'高温' },
+  '長浪':     { sev:'advisory', en:'High Swell',                ja:'高波' },
+  '陸上颱風警報': { sev:'severe', en:'Land Typhoon Warning',     ja:'陸上台風警報' },
+  '海上颱風警報': { sev:'warning', en:'Sea Typhoon Warning',     ja:'海上台風警報' }
+};
+const PHENOMENA_ORDER = ['超大豪雨','大豪雨','豪雨','大雨','大雷雨','陸上強風','海上強風','強風','濃霧','低溫','高溫','長浪','陸上颱風警報','海上颱風警報'];
+
+/* App-written guidance. Never presented as CWA wording. */
+const GUIDANCE = {
+  rain: {
+    en:['Avoid rivers, streams and mountain roads — flash floods arrive without warning.','Move vehicles out of basements and low-lying car parks.','If water enters your home, cut the power at the breaker before it reaches sockets.','Keep your phone charged; dial 119 for fire/rescue, 110 for police.'],
+    zh:['遠離溪流、河川與山區道路，山洪暴發毫無預警。','將車輛移出地下室與低窪停車場。','若積水進入住處，在水淹到插座前先關閉總電源。','手機保持電量；消防救護撥 119，報警撥 110。'],
+    ja:['川・渓流・山道に近づかないでください。鉄砲水は前触れなく来ます。','地下駐車場や低地から車を移動してください。','浸水したらコンセントに達する前にブレーカーを落としてください。','スマホは充電を。救急・消防は119、警察は110。']
+  },
+  wind: {
+    en:['Secure or bring in anything loose on balconies and rooftops.','Stay clear of scaffolding, metal sheeting, signboards and roadside trees.','Ride motorcycles with extra care on bridges and open coastal roads, or avoid them.','Expect ferry and some flight disruption.'],
+    zh:['陽台、屋頂的物品請收好或固定。','遠離鷹架、鐵皮、招牌與行道樹。','橋梁與濱海道路騎乘機車請格外小心，或改採其他交通方式。','船班與部分航班可能延誤或取消。'],
+    ja:['ベランダや屋上の飛ばされやすい物を固定・収納してください。','足場・トタン・看板・街路樹から離れてください。','橋や海沿いの道はバイクに注意、可能なら別の交通手段を。','船便や一部の空便に乱れが出ます。']
+  },
+  fog:   { en:['Drive with low beams and keep a long following distance.','Ferry and short-haul flights may be cancelled.'], zh:['行車請開近光燈並拉大車距。','船班與短程航班可能取消。'], ja:['ロービームで車間距離を十分に。','船便・短距離便が欠航することがあります。'] },
+  cold:  { en:['Check on elderly neighbours and anyone sleeping rough.','Never run a gas water heater in an unventilated bathroom.'], zh:['請關心長者與街友。','浴室未通風時切勿使用瓦斯熱水器。'], ja:['高齢の方や路上生活者に気を配ってください。','換気のない浴室でガス湯沸器を使わないでください。'] },
+  heat:  { en:['Drink water before you feel thirsty; avoid outdoor work 11:00–15:00.','Heat stroke is an emergency — call 119.'], zh:['口渴前就要補水；避免 11:00–15:00 戶外工作。','中暑屬急症，請撥 119。'], ja:['喉が渇く前に水分を。11〜15時の屋外作業は避けて。','熱中症は緊急事態です。119番を。'] },
+  quake: {
+    en:['Drop, cover, hold on. Stay put until the shaking stops.','Do not use lifts. Check gas and for cracks once it is over.','Aftershocks are normal; the next one can be as strong as the first.','On the coast, if shaking is long or violent, move inland and uphill without waiting for an official tsunami alert.'],
+    zh:['趴下、掩護、穩住，等待搖晃停止。','勿搭電梯。結束後檢查瓦斯與結構裂縫。','餘震屬正常，強度可能與主震相當。','沿海地區若搖晃劇烈或持續很久，不必等官方海嘯警報，立即往內陸高處避難。'],
+    ja:['姿勢を低く、頭を守り、揺れが収まるまで動かない。','エレベーターは使わない。収まったらガスと亀裂を確認。','余震は普通に起きます。本震並みの場合もあります。','沿岸では強い・長い揺れなら津波警報を待たず高台へ。']
+  },
+  tsunami: { en:['Move inland and to high ground immediately. Do not wait to see the wave.','Do not return to the coast until authorities say it is over.'], zh:['立即往內陸高處避難，不要等看到海浪。','未接獲解除訊息前請勿返回海邊。'], ja:['直ちに高台・内陸へ避難。波を見てからでは遅い。','解除されるまで海岸に戻らないでください。'] },
+  typhoon: {
+    en:['Follow your local government for work/school suspension — CWA data does not carry it.','Stock two days of water, food, medicine and cash; charge power banks.','Tape or shutter large windows; clear balcony drains.','Migrant workers: your employer cannot require outdoor work during a land typhoon warning.'],
+    zh:['停班停課請以各縣市政府公告為準，氣象署資料不含此訊息。','準備兩天份飲水、食物、藥品與現金，行動電源充飽。','大面積窗戶加固，清理陽台排水孔。','移工朋友：陸上颱風警報期間，雇主不得要求從事戶外工作。'],
+    ja:['休業・休校は各自治体の発表に従ってください。気象署データには含まれません。','水・食料・薬・現金を2日分。モバイルバッテリーも充電を。','大きな窓は補強し、ベランダの排水口を掃除。','外国人労働者の方へ：陸上台風警報中の屋外作業は雇用主が命じられません。']
+  }
+};
+const GUIDE_FOR_PHENOM = { '超大豪雨':'rain','大豪雨':'rain','豪雨':'rain','大雨':'rain','大雷雨':'rain',
+  '陸上強風':'wind','海上強風':'wind','強風':'wind','長浪':'wind','濃霧':'fog','低溫':'cold','高溫':'heat',
+  '陸上颱風警報':'typhoon','海上颱風警報':'typhoon' };
+
+/* 16-point compass, as CWA writes it in Chinese, with EN + JA renderings. */
+const COMPASS = [
+  ['北','N','北'],['北北東','NNE','北北東'],['東北','NE','北東'],['東北東','ENE','東北東'],
+  ['東','E','東'],['東南東','ESE','東南東'],['東南','SE','南東'],['南南東','SSE','南南東'],
+  ['南','S','南'],['南南西','SSW','南南西'],['西南','SW','南西'],['西南西','WSW','西南西'],
+  ['西','W','西'],['西北西','WNW','西北西'],['西北','NW','北西'],['北北西','NNW','北北西']
+];
+const COMPASS_ZH = Object.fromEntries(COMPASS.map(c => [c[0], { en:c[1], ja:c[2] }]));
+const COMPASS_EN = Object.fromEntries(COMPASS.map(c => [c[1], { zh:c[0], ja:c[2] }]));
+const COMPASS_DEG = Object.fromEntries(COMPASS.map((c, i) => [c[1], i * 22.5]));
+
+/* Sea areas and districts CWA names in epicenter strings. Anything not here is
+   shown in Chinese and openly labelled as untranslated. */
+const PLACE_TERMS = {
+  '臺灣東南部海域':{en:'off southeastern Taiwan', ja:'台湾南東部海域'},
+  '臺灣東部海域':{en:'off eastern Taiwan', ja:'台湾東部海域'},
+  '臺灣東北部海域':{en:'off northeastern Taiwan', ja:'台湾北東部海域'},
+  '臺灣北部海域':{en:'off northern Taiwan', ja:'台湾北部海域'},
+  '臺灣南部海域':{en:'off southern Taiwan', ja:'台湾南部海域'},
+  '臺灣西南部海域':{en:'off southwestern Taiwan', ja:'台湾南西部海域'},
+  '臺灣西部海域':{en:'off western Taiwan', ja:'台湾西部海域'},
+  '臺灣海峽':{en:'in the Taiwan Strait', ja:'台湾海峡'},
+  '臺灣海峽南部':{en:'in the southern Taiwan Strait', ja:'台湾海峡南部'},
+  '巴士海峽':{en:'in the Bashi Channel', ja:'バシー海峡'},
+  '南海':{en:'in the South China Sea', ja:'南シナ海'},
+  '太平洋':{en:'in the Pacific Ocean', ja:'太平洋'}
+};
+const DISTRICT_TERMS = {
+  '楠西區':{en:'Nanxi District', ja:'楠西区'}, '玉井區':{en:'Yujing District', ja:'玉井区'},
+  '南化區':{en:'Nanhua District', ja:'南化区'}, '東山區':{en:'Dongshan District', ja:'東山区'},
+  '六龜區':{en:'Liouguei District', ja:'六亀区'}, '甲仙區':{en:'Jiasian District', ja:'甲仙区'},
+  '桃源區':{en:'Taoyuan District', ja:'桃源区'}, '那瑪夏區':{en:'Namasia District', ja:'ナマシア区'},
+  '岡山區':{en:'Gangshan District', ja:'岡山区'}, '美濃區':{en:'Meinong District', ja:'美濃区'},
+  '旗山區':{en:'Cishan District', ja:'旗山区'}, '大埔鄉':{en:'Dapu Township', ja:'大埔郷'},
+  '中埔鄉':{en:'Zhongpu Township', ja:'中埔郷'}, '番路鄉':{en:'Fanlu Township', ja:'番路郷'},
+  '阿里山鄉':{en:'Alishan Township', ja:'阿里山郷'}, '梅山鄉':{en:'Meishan Township', ja:'梅山郷'},
+  '竹崎鄉':{en:'Zhuqi Township', ja:'竹崎郷'}, '仁愛鄉':{en:'Ren’ai Township', ja:'仁愛郷'},
+  '信義鄉':{en:'Xinyi Township', ja:'信義郷'}, '國姓鄉':{en:'Guoxing Township', ja:'国姓郷'},
+  '魚池鄉':{en:'Yuchi Township', ja:'魚池郷'}, '埔里鎮':{en:'Puli Township', ja:'埔里鎮'},
+  '秀林鄉':{en:'Xiulin Township', ja:'秀林郷'}, '萬榮鄉':{en:'Wanrong Township', ja:'萬栄郷'},
+  '卓溪鄉':{en:'Zhuoxi Township', ja:'卓渓郷'}, '玉里鎮':{en:'Yuli Township', ja:'玉里鎮'},
+  '豐濱鄉':{en:'Fengbin Township', ja:'豊浜郷'}, '壽豐鄉':{en:'Shoufeng Township', ja:'寿豊郷'},
+  '吉安鄉':{en:'Ji’an Township', ja:'吉安郷'}, '新城鄉':{en:'Xincheng Township', ja:'新城郷'},
+  '成功鎮':{en:'Chenggong Township', ja:'成功鎮'}, '東河鄉':{en:'Donghe Township', ja:'東河郷'},
+  '長濱鄉':{en:'Changbin Township', ja:'長浜郷'}, '池上鄉':{en:'Chishang Township', ja:'池上郷'},
+  '關山鎮':{en:'Guanshan Township', ja:'関山鎮'}, '海端鄉':{en:'Haiduan Township', ja:'海端郷'},
+  '大武鄉':{en:'Dawu Township', ja:'大武郷'}, '太麻里鄉':{en:'Taimali Township', ja:'太麻里郷'},
+  '蘭嶼鄉':{en:'Lanyu Township (Orchid Island)', ja:'蘭嶼郷'}, '綠島鄉':{en:'Lyudao Township (Green Island)', ja:'緑島郷'},
+  '南澳鄉':{en:'Nan’ao Township', ja:'南澳郷'}, '大同鄉':{en:'Datong Township', ja:'大同郷'},
+  '蘇澳鎮':{en:'Su’ao Township', ja:'蘇澳鎮'}, '礁溪鄉':{en:'Jiaoxi Township', ja:'礁渓郷'},
+  '尖石鄉':{en:'Jianshi Township', ja:'尖石郷'}, '五峰鄉':{en:'Wufeng Township', ja:'五峰郷'},
+  '泰安鄉':{en:'Tai’an Township', ja:'泰安郷'}, '和平區':{en:'Heping District', ja:'和平区'},
+  '茂林區':{en:'Maolin District', ja:'茂林区'}, '霧臺鄉':{en:'Wutai Township', ja:'霧台郷'},
+  '三地門鄉':{en:'Sandimen Township', ja:'三地門郷'}, '牡丹鄉':{en:'Mudan Township', ja:'牡丹郷'},
+  '恆春鎮':{en:'Hengchun Township', ja:'恒春鎮'}, '車城鄉':{en:'Checheng Township', ja:'車城郷'}
+};
+
+/* Shinjitai folding for Japanese output of Chinese place names. */
+const SHINJITAI = { '臺':'台','縣':'県','灣':'湾','颱':'台','區':'区','溫':'温','綠':'緑','鄉':'郷',
+  '濱':'浜','豐':'豊','溪':'渓','關':'関','國':'国','壽':'寿','榮':'栄','龍':'竜','嶺':'嶺','廣':'広',
+  '氣':'気','報':'報','發':'発','觀':'観','險':'険','會':'会','點':'点','學':'学','萬':'万','恆':'恒' };
+const toShinjitai = s => String(s || '').replace(/[臺縣灣颱區溫綠鄉濱豐溪關國壽榮龍嶺廣氣報發觀險會點學萬恆]/g, ch => SHINJITAI[ch] || ch);
+
+/* County geometry (inline, verbatim). Every map in this app is drawn from it. */
+const TW_GEO = {"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"MultiPolygon","coordinates":[[[[121.496,23.435],[121.446,23.443],[121.4,23.385],[121.423,23.36],[121.376,23.296],[121.316,23.111],[121.264,23.104],[121.212,23.145],[121.189,23.204],[121.14,23.202],[121.084,23.233],[121.028,23.297],[120.971,23.281],[120.916,23.238],[120.884,23.154],[120.88,23.035],[120.821,22.961],[120.865,22.843],[120.903,22.8],[120.884,22.717],[120.798,22.689],[120.753,22.612],[120.739,22.551],[120.763,22.501],[120.752,22.459],[120.79,22.418],[120.743,22.367],[120.785,22.346],[120.8,22.257],[120.866,22.23],[120.896,22.246],[120.895,22.334],[120.985,22.569],[121.022,22.649],[121.173,22.755],[121.201,22.799],[121.186,22.834],[121.236,22.868],[121.335,23.018],[121.367,23.097],[121.411,23.122],[121.397,23.208],[121.462,23.313],[121.496,23.435]]],[[[121.509,22.069],[121.534,22.026],[121.593,22.003],[121.568,22.085],[121.509,22.069]]]]},"properties":{"code":"TW-TTT"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.774,24.315],[121.801,24.434],[121.874,24.535],[121.819,24.758],[121.83,24.851],[121.926,24.969],[121.966,24.983],[121.841,24.954],[121.854,24.925],[121.792,24.9],[121.761,24.857],[121.689,24.817],[121.593,24.787],[121.594,24.729],[121.536,24.688],[121.48,24.674],[121.46,24.673],[121.403,24.592],[121.402,24.529],[121.317,24.442],[121.327,24.399],[121.373,24.369],[121.451,24.365],[121.498,24.339],[121.607,24.313],[121.622,24.366],[121.676,24.337],[121.774,24.315]]]},"properties":{"code":"TW-ILA"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.559,25.21],[121.503,25.173],[121.457,25.109],[121.507,25.071],[121.487,25.036],[121.561,24.965],[121.602,24.961],[121.596,25.007],[121.65,25.028],[121.616,25.048],[121.629,25.086],[121.559,25.21]]]},"properties":{"code":"TW-TPE"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.731,23.611],[120.661,23.61],[120.629,23.635],[120.647,23.673],[120.64,23.786],[120.511,23.8],[120.433,23.83],[120.308,23.82],[120.242,23.842],[120.182,23.799],[120.179,23.702],[120.144,23.649],[120.146,23.521],[120.223,23.504],[120.242,23.539],[120.403,23.627],[120.504,23.635],[120.581,23.582],[120.649,23.593],[120.718,23.569],[120.731,23.611]]]},"properties":{"code":"TW-YUN"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.284,25.117],[121.212,25.109],[121.052,25.042],[120.986,24.939],[121.039,24.946],[121.059,24.907],[121.156,24.88],[121.152,24.844],[121.308,24.755],[121.319,24.698],[121.403,24.592],[121.46,24.673],[121.48,24.674],[121.423,24.762],[121.45,24.786],[121.416,24.836],[121.358,24.839],[121.327,24.977],[121.403,25.001],[121.4,25.051],[121.284,25.117]]]},"properties":{"code":"TW-TAO"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.424,22.477],[120.452,22.448],[120.592,22.365],[120.643,22.303],[120.687,22.207],[120.717,22.093],[120.687,22.021],[120.711,21.934],[120.74,21.92],[120.766,21.959],[120.866,21.899],[120.846,21.988],[120.901,22.034],[120.886,22.133],[120.896,22.246],[120.866,22.23],[120.8,22.257],[120.785,22.346],[120.743,22.367],[120.79,22.418],[120.752,22.459],[120.763,22.501],[120.739,22.551],[120.753,22.612],[120.798,22.689],[120.884,22.717],[120.903,22.8],[120.865,22.843],[120.822,22.865],[120.778,22.835],[120.706,22.881],[120.673,22.856],[120.645,22.885],[120.553,22.828],[120.469,22.831],[120.433,22.623],[120.443,22.562],[120.424,22.477]]]},"properties":{"code":"TW-PIF"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.621,24.441],[120.511,24.293],[120.468,24.213],[120.486,24.197],[120.545,24.116],[120.613,24.103],[120.629,24.03],[120.679,24.014],[120.746,23.998],[120.829,24.071],[120.845,24.125],[120.891,24.098],[120.952,24.127],[120.989,24.119],[121.059,24.164],[121.257,24.245],[121.343,24.224],[121.423,24.309],[121.451,24.365],[121.373,24.369],[121.327,24.399],[121.317,24.442],[121.259,24.429],[121.121,24.331],[121.045,24.295],[121.005,24.332],[120.936,24.343],[120.904,24.292],[120.833,24.291],[120.693,24.367],[120.621,24.441]]]},"properties":{"code":"TW-TXG"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.653,23.225],[120.578,23.215],[120.519,23.239],[120.54,23.328],[120.441,23.413],[120.349,23.401],[120.293,23.375],[120.221,23.296],[120.181,23.291],[120.118,23.34],[120.082,23.21],[120.032,23.073],[120.157,22.978],[120.175,22.912],[120.351,22.889],[120.416,22.916],[120.46,23.003],[120.478,23.004],[120.575,23.091],[120.636,23.175],[120.653,23.225]]]},"properties":{"code":"TW-TNN"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.803,25.136],[121.709,25.176],[121.635,25.144],[121.651,25.099],[121.732,25.053],[121.762,25.057],[121.756,25.109],[121.803,25.136]]]},"properties":{"code":"TW-KEE"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[119.977,26.199],[120.016,26.22],[120.001,26.237],[119.977,26.199]]]},"properties":{"code":"TW-LIE"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.343,24.224],[121.257,24.245],[121.059,24.164],[120.989,24.119],[120.952,24.127],[120.891,24.098],[120.845,24.125],[120.829,24.071],[120.746,23.998],[120.679,24.014],[120.641,24.008],[120.647,23.963],[120.621,23.844],[120.68,23.802],[120.64,23.786],[120.647,23.673],[120.629,23.635],[120.661,23.61],[120.731,23.611],[120.814,23.601],[120.809,23.536],[120.839,23.471],[120.958,23.469],[121.015,23.435],[121.069,23.515],[121.151,23.529],[121.154,23.587],[121.214,23.601],[121.241,23.709],[121.205,23.772],[121.228,23.785],[121.268,23.883],[121.278,23.966],[121.261,23.994],[121.328,24.115],[121.281,24.136],[121.287,24.178],[121.349,24.201],[121.343,24.224]]]},"properties":{"code":"TW-NAN"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[119.544,23.646],[119.581,23.662],[119.605,23.609],[119.572,23.509],[119.676,23.594],[119.61,23.611],[119.598,23.675],[119.544,23.646],[119.512,23.648],[119.493,23.57],[119.515,23.564],[119.544,23.646]]]},"properties":{"code":"TW-PEN"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.259,24.429],[121.262,24.455],[121.203,24.512],[121.072,24.5],[121.083,24.59],[120.935,24.713],[120.879,24.735],[120.829,24.67],[120.78,24.661],[120.726,24.608],[120.668,24.485],[120.621,24.441],[120.693,24.367],[120.833,24.291],[120.904,24.292],[120.936,24.343],[121.005,24.332],[121.045,24.295],[121.121,24.331],[121.259,24.429]]]},"properties":{"code":"TW-MIA"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.429,23.509],[120.389,23.499],[120.44,23.44],[120.509,23.475],[120.429,23.509]]]},"properties":{"code":"TW-CYI"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.986,24.939],[120.934,24.853],[121,24.822],[121.03,24.766],[120.993,24.781],[120.935,24.713],[121.083,24.59],[121.072,24.5],[121.203,24.512],[121.262,24.455],[121.259,24.429],[121.317,24.442],[121.402,24.529],[121.403,24.592],[121.319,24.698],[121.308,24.755],[121.152,24.844],[121.156,24.88],[121.059,24.907],[121.039,24.946],[120.986,24.939]]]},"properties":{"code":"TW-HSQ"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.48,24.674],[121.536,24.688],[121.594,24.729],[121.593,24.787],[121.689,24.817],[121.761,24.857],[121.792,24.9],[121.854,24.925],[121.841,24.954],[121.966,24.983],[121.998,25.02],[121.945,25.021],[121.907,25.122],[121.803,25.136],[121.756,25.109],[121.762,25.057],[121.732,25.053],[121.651,25.099],[121.635,25.144],[121.709,25.176],[121.634,25.24],[121.618,25.278],[121.54,25.295],[121.448,25.246],[121.386,25.145],[121.284,25.117],[121.4,25.051],[121.403,25.001],[121.327,24.977],[121.358,24.839],[121.416,24.836],[121.45,24.786],[121.423,24.762],[121.48,24.674]],[[121.559,25.21],[121.629,25.086],[121.616,25.048],[121.65,25.028],[121.596,25.007],[121.602,24.961],[121.561,24.965],[121.487,25.036],[121.507,25.071],[121.457,25.109],[121.503,25.173],[121.559,25.21]]]},"properties":{"code":"TW-NWT"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[121.028,23.297],[121.084,23.233],[121.14,23.202],[121.189,23.204],[121.212,23.145],[121.264,23.104],[121.316,23.111],[121.376,23.296],[121.423,23.36],[121.4,23.385],[121.446,23.443],[121.496,23.435],[121.503,23.521],[121.598,23.861],[121.606,23.955],[121.647,24.008],[121.618,24.085],[121.667,24.149],[121.675,24.208],[121.744,24.262],[121.774,24.315],[121.676,24.337],[121.622,24.366],[121.607,24.313],[121.498,24.339],[121.451,24.365],[121.423,24.309],[121.343,24.224],[121.349,24.201],[121.287,24.178],[121.281,24.136],[121.328,24.115],[121.261,23.994],[121.278,23.966],[121.268,23.883],[121.228,23.785],[121.205,23.772],[121.241,23.709],[121.214,23.601],[121.154,23.587],[121.151,23.529],[121.069,23.515],[121.015,23.435],[121.027,23.406],[120.987,23.359],[121.049,23.325],[121.028,23.297]]]},"properties":{"code":"TW-HUA"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.424,22.477],[120.443,22.562],[120.433,22.623],[120.469,22.831],[120.553,22.828],[120.645,22.885],[120.673,22.856],[120.706,22.881],[120.778,22.835],[120.822,22.865],[120.865,22.843],[120.821,22.961],[120.88,23.035],[120.884,23.154],[120.916,23.238],[120.971,23.281],[121.028,23.297],[121.049,23.325],[120.987,23.359],[121.027,23.406],[121.015,23.435],[120.958,23.469],[120.85,23.42],[120.829,23.375],[120.713,23.309],[120.642,23.292],[120.653,23.225],[120.636,23.175],[120.575,23.091],[120.478,23.004],[120.46,23.003],[120.416,22.916],[120.351,22.889],[120.175,22.912],[120.212,22.808],[120.275,22.684],[120.262,22.614],[120.315,22.547],[120.424,22.477]]]},"properties":{"code":"TW-KHH"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.64,23.786],[120.68,23.802],[120.621,23.844],[120.647,23.963],[120.641,24.008],[120.679,24.014],[120.629,24.03],[120.613,24.103],[120.545,24.116],[120.486,24.197],[120.394,24.106],[120.372,24.04],[120.304,23.941],[120.287,23.876],[120.242,23.842],[120.308,23.82],[120.433,23.83],[120.511,23.8],[120.64,23.786]]]},"properties":{"code":"TW-CHA"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.653,23.225],[120.642,23.292],[120.713,23.309],[120.829,23.375],[120.85,23.42],[120.958,23.469],[120.839,23.471],[120.809,23.536],[120.814,23.601],[120.731,23.611],[120.718,23.569],[120.649,23.593],[120.581,23.582],[120.504,23.635],[120.403,23.627],[120.242,23.539],[120.223,23.504],[120.146,23.521],[120.158,23.383],[120.118,23.34],[120.181,23.291],[120.221,23.296],[120.293,23.375],[120.349,23.401],[120.441,23.413],[120.54,23.328],[120.519,23.239],[120.578,23.215],[120.653,23.225]],[[120.429,23.509],[120.509,23.475],[120.44,23.44],[120.389,23.499],[120.429,23.509]]]},"properties":{"code":"TW-CYQ"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[118.365,24.428],[118.437,24.41],[118.473,24.441],[118.448,24.509],[118.392,24.509],[118.384,24.468],[118.314,24.49],[118.288,24.469],[118.311,24.429],[118.28,24.411],[118.32,24.386],[118.365,24.428]]]},"properties":{"code":"TW-KIN"}},{"type":"Feature","geometry":{"type":"Polygon","coordinates":[[[120.934,24.853],[120.879,24.735],[120.935,24.713],[120.993,24.781],[121.03,24.766],[121,24.822],[120.934,24.853]]]},"properties":{"code":"TW-HSZ"}}]};
+
+/* ------------------------------- 2. i18n ---------------------------- */
+
+const LANGS = [['en','EN'],['zh','中文'],['ja','日本語']];
+const STR = {
+  brandSub:{en:'Live CWA open data · independent service', zh:'中央氣象署開放資料即時載入 · 非官方服務', ja:'中央気象署オープンデータ・非公式サービス'},
+  showSource:{en:'Show source', zh:'顯示資料來源', ja:'出典を表示'},
+  hideSource:{en:'Hide source', zh:'隱藏資料來源', ja:'出典を隠す'},
+  navHome:{en:'Now', zh:'現況', ja:'現在'},
+  navQuake:{en:'Earthquake', zh:'地震', ja:'地震'},
+  navTyphoon:{en:'Typhoon', zh:'颱風', ja:'台風'},
+  sev:{
+    severe:{en:'SEVERE', zh:'嚴重', ja:'重大'},
+    warning:{en:'WARNING', zh:'警戒', ja:'警戒'},
+    advisory:{en:'ADVISORY', zh:'注意', ja:'注意'},
+    info:{en:'INFORMATION', zh:'資訊', ja:'情報'},
+    none:{en:'NOTHING ACTIVE', zh:'目前無生效警報', ja:'発表中の警報なし'}
+  },
+  yourCounty:{en:'Your county', zh:'你的縣市', ja:'あなたの県市'},
+  tapMap:{en:'Tap any county to switch', zh:'點選任一縣市即可切換', ja:'県市をタップで切替'},
+  mapTitle:{en:'Taiwan — active warnings now', zh:'全臺生效中警報', ja:'台湾全域の発表中警報'},
+  legendNone:{en:'No warning listed', zh:'無列出警報', ja:'警報なし'},
+  inCounty:{en:'In {c}', zh:'{c}', ja:'{c}'},
+  elsewhere:{en:'Elsewhere in Taiwan', zh:'其他地區', ja:'その他の地域'},
+  nActive:{en:'{n} active', zh:'{n} 則生效中', ja:'{n} 件発表中'},
+  statusActive:{en:'{n} warning(s) in force for {c}. Highest level: {s}.', zh:'{c} 目前有 {n} 則警報生效，最高等級：{s}。', ja:'{c} に {n} 件の警報が発表中。最高レベル：{s}。'},
+  statusClear:{en:'CWA lists no warning in force for {c} right now.', zh:'氣象署目前未對{c}發布生效中的警特報。', ja:'気象署は現在 {c} に発表中の警報を出していません。'},
+  statusClearNote:{en:'This reflects only what CWA has published. It is not a safety check of your surroundings.', zh:'此狀態僅反映氣象署已發布的內容，並非對你周遭環境的安全檢查。', ja:'これは気象署の発表内容のみを反映したもので、周囲の安全確認ではありません。'},
+  latestQuake:{en:'Most recent earthquake', zh:'最近一次地震', ja:'直近の地震'},
+  latestQuakeNote:{en:'Earthquake reports carry an eight-hour official validity window, so most of the time none are “active”. The latest report is shown regardless.', zh:'地震報告的官方有效時間為 8 小時，多數時間不會處於「生效中」。此處仍固定顯示最近一次報告。', ja:'地震報告の有効期間は8時間のため、通常は「発表中」ではありません。直近の報告は常に表示します。'},
+  noQuake:{en:'No earthquake report in the current CWA feed.', zh:'目前氣象署資料中沒有地震報告。', ja:'現在の気象署データに地震報告はありません。'},
+  dataStatus:{en:'Data sources', zh:'資料來源狀態', ja:'データソース状態'},
+  loading:{en:'loading…', zh:'載入中…', ja:'読込中…'},
+  loadedAt:{en:'loaded {t}', zh:'{t} 載入', ja:'{t} 取得'},
+  failed:{en:'UNAVAILABLE', zh:'無法載入', ja:'取得失敗'},
+  failedNote:{en:'One or more datasets did not load. Missing data is shown as unavailable — it does not mean “all clear”.', zh:'有資料集未能載入。未載入的資料標示為無法取得，並不代表「無警報」。', ja:'一部のデータが取得できませんでした。「警報なし」という意味ではありません。'},
+  retry:{en:'Retry', zh:'重新載入', ja:'再取得'},
+  refresh:{en:'Refresh all', zh:'全部重新整理', ja:'すべて更新'},
+  back:{en:'Back', zh:'返回', ja:'戻る'},
+  affected:{en:'Affected areas', zh:'影響地區', ja:'対象地域'},
+  guidance:{en:'What to do', zh:'應變建議', ja:'取るべき行動'},
+  guidanceNote:{en:'Written by this app for general public safety. Not a CWA text.', zh:'本段為本應用自行撰寫的一般性安全建議，非氣象署文字。', ja:'本アプリが作成した一般的な安全助言です。気象署の文面ではありません。'},
+  officialText:{en:'Official CWA text', zh:'氣象署原文', ja:'気象署原文'},
+  officialZhOnly:{en:'CWA published this narrative in Chinese only. The English summary above is generated by this app from the structured fields.', zh:'氣象署僅提供中文敘述。上方摘要由本應用依結構化欄位生成。', ja:'気象署の本文は中国語のみです。上記の要約は本アプリが構造化データから生成しています。'},
+  officialEnBadge:{en:'OFFICIAL ENGLISH', zh:'官方英文', ja:'公式英文'},
+  generatedBadge:{en:'GENERATED BY THIS APP', zh:'本應用生成', ja:'本アプリ生成'},
+  issued:{en:'Issued', zh:'發布時間', ja:'発表時刻'},
+  valid:{en:'In force', zh:'生效時間', ja:'有効期間'},
+  until:{en:'until', zh:'至', ja:'まで'},
+  expired:{en:'expired', zh:'已過期', ja:'期限切れ'},
+  openCwa:{en:'Open the official CWA page', zh:'開啟氣象署官方頁面', ja:'気象署の公式ページを開く'},
+  magnitude:{en:'Magnitude', zh:'規模', ja:'マグニチュード'},
+  depth:{en:'Depth', zh:'深度', ja:'深さ'},
+  epicenter:{en:'Epicenter', zh:'震央', ja:'震源'},
+  originTime:{en:'Origin time', zh:'發震時間', ja:'発震時刻'},
+  maxIntensity:{en:'Max intensity', zh:'最大震度', ja:'最大震度'},
+  intensityNote:{en:'Intensity is Taiwan’s ten-tier shaking scale (0–7, with 5 and 6 split into lower/upper) — how hard the ground shook where you are. It is not magnitude.', zh:'震度為臺灣十級地震震度分級（0–7 級，5、6 級再分弱/強），表示當地搖晃程度，與規模不同。', ja:'震度は台湾の10段階の揺れの尺度（0〜7、5と6は弱・強に分割）です。マグニチュードとは異なります。'},
+  shakingMap:{en:'Observed shaking by county', zh:'各縣市觀測震度', ja:'県市別の観測震度'},
+  noShaking:{en:'No per-county observation rows in this report.', zh:'本報告沒有各縣市觀測資料。', ja:'この報告には県市別の観測行がありません。'},
+  recentQuakes:{en:'Recent reports', zh:'近期報告', ja:'最近の報告'},
+  quakeSource:{en:'Report set', zh:'報告類別', ja:'報告種別'},
+  significant:{en:'Significant', zh:'顯著有感', ja:'顕著'},
+  smallArea:{en:'Small area', zh:'小區域', ja:'小地域'},
+  tsunamiFlag:{en:'Tsunami wording present in the CWA report', zh:'報告內容含海嘯警報字樣', ja:'報告に津波警報の記載あり'},
+  cyclones:{en:'Tropical cyclones CWA is tracking', zh:'氣象署追蹤中的熱帶氣旋', ja:'気象署が追跡中の熱帯低気圧'},
+  noCyclone:{en:'CWA is tracking no tropical cyclone right now.', zh:'氣象署目前未追蹤任何熱帶氣旋。', ja:'現在追跡中の熱帯低気圧はありません。'},
+  basinNote:{en:'This dataset lists every cyclone in the northwest Pacific and South China Sea — including storms far from Taiwan that are someone else’s emergency.', zh:'本資料集涵蓋西北太平洋與南海所有熱帶氣旋，包含距離臺灣很遠、與本地無關的風暴。', ja:'このデータは北西太平洋・南シナ海の全ての熱帯低気圧を含み、台湾から遠い台風も含まれます。'},
+  noWarnFlag:{en:'This dataset carries no land/sea warning flag. This app therefore cannot tell you whether a land typhoon warning is in force — check CWA or your local government.', zh:'本資料集不含陸上/海上颱風警報旗標，因此本應用無法判斷是否已發布陸上颱風警報，請查閱氣象署或地方政府公告。', ja:'このデータには陸上・海上台風警報の区分が含まれないため、本アプリでは陸上台風警報の有無を判断できません。気象署や自治体の発表をご確認ください。'},
+  distTaiwan:{en:'Distance to Taiwan', zh:'距離臺灣', ja:'台湾からの距離'},
+  bearingFromTw:{en:'Bearing from Taiwan', zh:'相對臺灣方位', ja:'台湾からの方位'},
+  pressure:{en:'Central pressure', zh:'中心氣壓', ja:'中心気圧'},
+  maxWind:{en:'Max sustained wind', zh:'近中心最大風速', ja:'最大風速'},
+  gust:{en:'Max gust', zh:'瞬間最大陣風', ja:'最大瞬間風速'},
+  movement:{en:'Movement', zh:'移動', ja:'進行'},
+  radius15:{en:'15 m/s wind radius', zh:'7 級風（15 m/s）暴風半徑', ja:'15m/s 風半径'},
+  radius25:{en:'25 m/s wind radius', zh:'10 級風（25 m/s）暴風半徑', ja:'25m/s 風半径'},
+  lastFix:{en:'Latest fix', zh:'最新定位', ja:'最新の解析'},
+  forecastPositions:{en:'Forecast positions', zh:'預報位置', ja:'予報位置'},
+  trackObserved:{en:'Observed track', zh:'過去路徑', ja:'実況経路'},
+  trackForecast:{en:'Forecast track', zh:'預報路徑', ja:'予報経路'},
+  stale:{en:'Stale — latest fix is over 12 hours old; treated as inactive.', zh:'資料過舊：最新定位已超過 12 小時，視為非活躍。', ja:'最新の解析から12時間以上経過。非活動として扱います。'},
+  farAway:{en:'Far from Taiwan — shown as information, not as a warning for your county.', zh:'距離臺灣尚遠，僅作為資訊顯示，不列為你所在縣市的警報。', ja:'台湾から遠いため、県市の警報ではなく情報として表示しています。'},
+  nearTaiwan:{en:'Near Taiwan — this storm is in your county alert stream.', zh:'已接近臺灣，已納入縣市警報清單。', ja:'台湾に接近中。県市の警報一覧に含めています。'},
+  stormArrow:{en:'{name} · {d} km {dir}', zh:'{name} · {d} 公里 {dir}', ja:'{name} · {d} km {dir}'},
+  towardStorm:{en:'{name} is {d} km {dir} of Taiwan, beyond this frame', zh:'{name}位於臺灣{dir} {d} 公里，已超出此圖範圍', ja:'{name}は台湾の{dir} {d} km、この図の範囲外です'},
+  computed:{en:'COMPUTED BY THIS APP', zh:'本應用計算', ja:'本アプリが計算'},
+  fromField:{en:'FROM CWA FIELD', zh:'取自氣象署欄位', ja:'気象署データ項目'},
+  rawValue:{en:'raw', zh:'原始值', ja:'元の値'},
+  inputs:{en:'inputs', zh:'計算依據', ja:'計算の入力'},
+  rule:{en:'rule', zh:'規則', ja:'ルール'},
+  dataset:{en:'dataset', zh:'資料集', ja:'データセット'},
+  path:{en:'field path', zh:'欄位路徑', ja:'項目パス'},
+  cwaIssued:{en:'CWA issue time', zh:'氣象署發布時間', ja:'気象署の発表時刻'},
+  untranslated:{en:'shown in Chinese — not in this app’s place-name dictionary', zh:'原文顯示', ja:'中国語のまま表示（辞書に未収録）'},
+  disclaimer:{en:'Independent third-party service, not affiliated with the Central Weather Administration. Data is fetched live from CWA open data and may be delayed, incomplete or unavailable. In an emergency the official CWA announcement and your local government govern. Emergency numbers in Taiwan: 119 fire and ambulance, 110 police, 118 coast guard.', zh:'本服務為獨立第三方應用，與中央氣象署無隸屬關係。資料即時取自氣象署開放平臺，可能延遲、不完整或無法取得。緊急時請以氣象署官方發布與地方政府公告為準。緊急電話：119 消防救護、110 警察、118 海巡。', ja:'本サービスは中央気象署とは無関係の独立した第三者アプリです。データは気象署のオープンデータから随時取得しており、遅延・欠落・取得失敗の可能性があります。緊急時は気象署の公式発表と自治体の指示に従ってください。緊急番号：119 消防・救急、110 警察、118 海上保安。'},
+  subregionNote:{en:'CWA named an area inside a county ({a}); it maps to no single county and is listed nationwide.', zh:'氣象署指定的是縣市內的次分區（{a}），無法對應單一縣市，已列於全國清單。', ja:'気象署が指定したのは県市内の一部地域（{a}）で、単一の県市に対応しないため全国一覧に掲載しています。'},
+  rules:{
+    phenom:{en:'phenomenon “{p}” → {s}', zh:'現象「{p}」→ {s}', ja:'現象「{p}」→ {s}'},
+    phenomContains:{en:'phenomenon name contains “{p}” → {s}', zh:'現象名稱包含「{p}」→ {s}', ja:'現象名に「{p}」を含む → {s}'},
+    phenomUnknown:{en:'unrecognised 特報 → advisory; an unknown warning must never render as calm', zh:'無法辨識的特報 → 注意；未知的警報絕不呈現為平安無事', ja:'未知の特報 → 注意。不明な警報を平常時として表示しない'},
+    quakeTsunami:{en:'tsunami wording found in ReportContent → severe, whatever the intensity', zh:'報告內容出現海嘯警報字樣 → 嚴重，不論震度', ja:'報告文に津波警報の記載 → 震度に関わらず重大'},
+    quake5:{en:'maximum observed intensity 5弱 or above → severe', zh:'最大觀測震度 5弱 以上 → 嚴重', ja:'最大観測震度5弱以上 → 重大'},
+    quake4:{en:'maximum observed intensity exactly 4級 → warning', zh:'最大觀測震度恰為 4級 → 警戒', ja:'最大観測震度がちょうど4 → 警戒'},
+    quake03:{en:'maximum observed intensity 0級–3級 → advisory', zh:'最大觀測震度 0級–3級 → 注意', ja:'最大観測震度0〜3 → 注意'},
+    quakeNone:{en:'no per-county intensity row in this report → advisory, never info', zh:'本報告無各縣市震度資料 → 注意，不降為資訊', ja:'県市別の震度行なし → 注意（情報には落とさない）'},
+    proximity:{en:'a cyclone enters the county alert stream only when its 15 m/s wind radius, or a forecast position within the next 24 hours, comes within roughly 300 km of Taiwan', zh:'熱帶氣旋須其 15 m/s 暴風半徑、或未來 24 小時內的預報位置接近臺灣約 300 公里以內，才列入縣市警報', ja:'熱帯低気圧は、15m/sの暴風半径または24時間以内の予報位置が台湾から約300km以内に入った場合のみ県市の警報一覧に入る'},
+    ty25:{en:'25 m/s wind radius reaches Taiwan → severe', zh:'25 m/s 暴風半徑已涵蓋臺灣 → 嚴重', ja:'25m/sの暴風半径が台湾に達する → 重大'},
+    ty15:{en:'15 m/s wind radius reaches Taiwan → warning', zh:'15 m/s 暴風半徑已涵蓋臺灣 → 警戒', ja:'15m/sの暴風半径が台湾に達する → 警戒'},
+    ty300:{en:'within ~300 km of Taiwan but the wind radii do not reach it → advisory', zh:'距臺灣約 300 公里內，但暴風半徑尚未涵蓋 → 注意', ja:'台湾から約300km以内だが暴風半径は未到達 → 注意'},
+    heroMax:{en:'highest severity among the alerts currently in force whose affected counties include your county', zh:'目前生效中、且影響縣市包含你所在縣市的警報，取其最高嚴重度', ja:'発表中の警報のうち、対象県市にあなたの県市を含むものの最高深刻度'},
+    headlineGen:{en:'headline and summary sentence written by this app from the structured fields (phenomenon/magnitude, counties, validity window, computed severity). CWA published no English or Japanese text for this alert.', zh:'標題與摘要由本應用依結構化欄位（現象／規模、縣市、生效時間、計算後的嚴重度）生成；氣象署未就本則提供英文或日文文字。', ja:'見出しと要約は本アプリが構造化項目（現象・規模、県市、有効期間、算出した深刻度）から作成。気象署は本件の英語・日本語文を発表していません。'},
+    headlineGenEn:{en:'headline written by this app from the structured fields; CWA also published an official English narrative — open the alert to read it', zh:'標題由本應用依結構化欄位生成；氣象署另有官方英文敘述，可開啟該警報閱讀', ja:'見出しは本アプリが構造化項目から作成。気象署の公式英文もあります（詳細画面で確認）'},
+    countyResolve:{en:'county codes resolved from the Chinese area names CWA published — matching both 臺 and 台, and mapping 恆春半島 up to Pingtung County', zh:'依氣象署公布的中文地區名稱對應縣市代碼：同時比對「臺」與「台」，並將恆春半島歸入屏東縣', ja:'気象署の中国語地域名から県市コードを判定。臺・台の両表記に対応し、恒春半島は屏東県に集約'},
+    epicenterParse:{en:'parsed from CWA’s fixed Chinese pattern “<county>政府<direction>方 <km> 公里 (位於…)”. The distance is measured from the county government office, and the parenthetical is dropped when it only repeats the county already named.', zh:'解析氣象署固定的中文格式「<縣市>政府<方位>方 <公里> 公里（位於…）」；距離自縣市政府量起，括號內若僅重複已提及的縣市則予省略。', ja:'気象署の定型表記「<県市>政府<方位>方 <km> 公里（位於…）」を解析。距離は県庁・市役所からの距離で、括弧内が既出の県市名の繰り返しなら省略します。'},
+    intensityMax:{en:'maximum over the {n} row(s) carrying InfoStatus:"observe", ranked on the ten-tier ordinal 0級…7級 — never sorted as text', zh:'取 {n} 筆 InfoStatus:"observe" 觀測列的最大值，依 0級…7級 十級序位比較，絕不以文字排序', ja:'InfoStatus:"observe" の観測行 {n} 件の最大値。0級〜7級の10段階の序列で比較し、文字列としては並べ替えない'},
+    intensityFallback:{en:'this report carries no “observe” row, so its {m} summary row(s) were used instead', zh:'本報告沒有 observe 觀測列，因此改用 {m} 筆彙整列', ja:'この報告には observe 行がないため、集計行 {m} 件を使用'},
+    shakingRows:{en:'per-county rows with InfoStatus:"observe" are authoritative; summary rows such as 最大震度4級地區 are used only when a report has none', zh:'以 InfoStatus:"observe" 的各縣市列為準；僅在沒有觀測列時，才使用「最大震度4級地區」這類彙整列', ja:'InfoStatus:"observe" の県市別行を正とし、「最大震度4級地區」のような集計行は observe 行がない場合のみ使用'},
+    distanceCalc:{en:'great-circle distance from the storm centre to the nearest point of the inline Taiwan county geometry', zh:'自暴風中心到內建臺灣縣市圖形最近一點的大圓距離', ja:'台風の中心から内蔵の台湾県市形状の最近点までの大円距離'},
+    bearingCalc:{en:'initial bearing from a central reference point in Taiwan (23.75N, 121.0E) to the storm centre', zh:'自臺灣中心參考點（23.75N, 121.0E）至暴風中心的方位角', ja:'台湾の基準点（北緯23.75度、東経121.0度）から台風中心への方位'},
+    summaryGen:{en:'summary sentence generated by this app from the structured CWA fields — not a CWA translation', zh:'摘要由本應用依氣象署結構化欄位生成，並非氣象署譯文', ja:'要約は本アプリが気象署の構造化項目から生成したもので、気象署の翻訳ではありません'}
+  },
+  notes:{
+    tz:{en:'space-separated local time with no offset — parsed as Asia/Taipei (+08:00)', zh:'原始值為不含時區的本地時間，已以 Asia/Taipei（+08:00）解析', ja:'オフセットのない現地時刻。Asia/Taipei（+08:00）として解析'},
+    sig:{en:'CWA publishes this as the constant string 特報 — a flag, not a severity level', zh:'氣象署此欄位固定為「特報」，是一個標記而非等級', ja:'この項目は常に「特報」で、レベルではなく区分を示す印です'},
+    originKey:{en:'also this report’s unique key — EarthquakeNo is reused across records in E-A0016-001', zh:'同時作為本報告的唯一鍵：E-A0016-001 的多筆記錄共用同一個 EarthquakeNo', ja:'本報告の一意キーとしても使用。E-A0016-001 では EarthquakeNo が複数レコードで重複します'},
+    eqNo:{en:'shown raw — in E-A0016-001 every record in the response repeats the same number', zh:'顯示原始值：E-A0016-001 回應中的每一筆都是同一個編號', ja:'元の値を表示。E-A0016-001 では全レコードが同じ番号を返します'},
+    strNum:{en:'CWA sends typhoon numbers as strings, not numbers', zh:'颱風資料的數值以字串型別提供，而非數字', ja:'台風データの数値は数値型ではなく文字列で提供されます'},
+    officialMove:{en:'CWA supplies this sentence in official English (en-us)', zh:'此句氣象署提供官方英文版本（en-us）', ja:'この文は気象署が公式英語（en-us）で提供しています'},
+    forecastValid:{en:'valid time computed as InitialTime + ForecastHour', zh:'有效時間由 InitialTime + ForecastHour 計算而得', ja:'有効時刻は InitialTime + ForecastHour から算出'}
+  },
+  rawRecord:{en:'raw CWA record', zh:'氣象署原始記錄', ja:'気象署の生レコード'},
+  phenomenon:{en:'Phenomenon', zh:'現象', ja:'現象'},
+  significanceK:{en:'Significance flag', zh:'警特報別', ja:'発表区分'},
+  severityK:{en:'Severity (computed)', zh:'嚴重度（計算）', ja:'深刻度（算出）'},
+  pickCounty:{en:'Change county', zh:'切換縣市', ja:'県市を変更'},
+  km:{en:'km', zh:'公里', ja:'km'},
+  ago:{en:'{t} ago', zh:'{t}前', ja:'{t}前'},
+  min:{en:'{n} min', zh:'{n} 分鐘', ja:'{n}分'},
+  hour:{en:'{n} h', zh:'{n} 小時', ja:'{n}時間'},
+  day:{en:'{n} d', zh:'{n} 天', ja:'{n}日'},
+  justNow:{en:'just now', zh:'剛剛', ja:'たった今'},
+  weatherHeadline:{en:'{p} warning · {areas}', zh:'{p}特報 · {areas}', ja:'{p}特報 · {areas}'},
+  weatherBody:{en:'CWA has issued a {p} warning ({sig}) for {areas}, in force {from} to {to} Taiwan time.', zh:'氣象署針對{areas}發布{p}{sig}，生效時間 {from} 至 {to}（臺灣時間）。', ja:'気象署は{areas}に{p}{sig}を発表しました。有効期間は台湾時間 {from}〜{to} です。'},
+  quakeHeadline:{en:'M{m} earthquake · max intensity {i} in {c}', zh:'規模 {m} 地震 · {c}最大震度 {i}', ja:'M{m} の地震 · {c}で最大{i}'},
+  quakeBody:{en:'A magnitude {m} earthquake struck at {t} Taiwan time, {loc}, at {d} km depth. Strongest observed shaking: intensity {i} in {c}.', zh:'{t}（臺灣時間）發生規模 {m} 地震，震央位於{loc}，深度 {d} 公里。最大觀測震度 {i}（{c}）。', ja:'台湾時間 {t}、{loc}でM{m}の地震が発生（深さ {d} km）。最大観測震度は{c}の{i}です。'},
+  typhoonHeadline:{en:'Tropical cyclone {name} · {d} km from Taiwan', zh:'熱帶氣旋 {name} · 距臺灣 {d} 公里', ja:'熱帯低気圧 {name} · 台湾から {d} km'},
+  and:{en:' and ', zh:'、', ja:'、'},
+  listSep:{en:', ', zh:'、', ja:'、'}
+};
+
+function t(key, vars) {
+  const node = key.split('.').reduce((o, k) => (o || {})[k], STR);
+  let s = (node && (node[state.lang] || node.en)) || key;
+  if (vars) for (const k in vars) s = s.split('{' + k + '}').join(vars[k]);
+  return s;
+}
+const L = obj => (obj ? (obj[state.lang] || obj.en || obj.zh || '') : '');
+
+/* ------------------------------ 3. UTILS ---------------------------- */
+
+const state = {
+  lang: 'en', source: false, view: 'home',
+  county: 'TW-TPE',
+  alertId: null, quakeId: null, cycloneIdx: 0,
+  ds: {},              // dataset key -> {status, data, error, at}
+  alerts: [], quakes: [], cyclones: [],
+  now: new Date()
+};
+for (const k in DATASETS) state.ds[k] = { status: 'loading', data: null, error: null, at: null };
+
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+  ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+
+/* Numbers arrive as strings in typhoon data and numbers in earthquake data. */
+const num = v => { const n = typeof v === 'number' ? v : parseFloat(String(v ?? '').replace(/[^\d.+-]/g, '')); return Number.isFinite(n) ? n : null; };
+
+/* Two timestamp formats coexist. The space-separated one is Asia/Taipei with
+   no offset written; attach +08:00 or everything lands eight hours wrong. */
+function parseCwaTime(s) {
+  if (!s) return null;
+  const str = String(s).trim();
+  let iso;
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}(:\d{2})?$/.test(str)) {
+    iso = str.replace(' ', 'T') + (str.length === 16 ? ':00' : '') + '+08:00';
+  } else {
+    iso = str.replace(' ', 'T');
+  }
+  const d = new Date(iso);
+  return isNaN(d.getTime()) ? null : d;
+}
+const TPE = { timeZone: 'Asia/Taipei' };
+const LOCALE = { en: 'en-GB', zh: 'zh-TW', ja: 'ja-JP' };
+function fmtDT(d) {
+  if (!d) return '—';
+  const loc = LOCALE[state.lang] || 'en-GB';
+  const s = d.toLocaleString(loc, { ...TPE, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+  return s + ' TPE';
+}
+function fmtDTp(d) {
+  if (!d) return '—';
+  return d.toLocaleString(LOCALE[state.lang] || 'en-GB', { ...TPE, month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false });
+}
+function fmtClock(d) {
+  if (!d) return '—';
+  return d.toLocaleString(LOCALE[state.lang] || 'en-GB', { ...TPE, hour: '2-digit', minute: '2-digit', hour12: false });
+}
+function fmtFull(d) {
+  if (!d) return '—';
+  return d.toLocaleString(LOCALE[state.lang] || 'en-GB', { ...TPE, year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }) + ' (UTC+8)';
+}
+function relTime(d, now) {
+  if (!d) return '—';
+  const ms = (now || new Date()) - d;
+  const mins = Math.round(ms / 60000);
+  if (mins < 1) return t('justNow');
+  if (mins < 60) return t('ago', { t: t('min', { n: mins }) });
+  const h = Math.floor(mins / 60);
+  if (h < 48) return t('ago', { t: t('hour', { n: h }) });
+  return t('ago', { t: t('day', { n: Math.floor(h / 24) }) });
+}
+
+/* Geography. */
+const R_EARTH = 6371;
+const rad = x => x * Math.PI / 180;
+function haversine(lat1, lon1, lat2, lon2) {
+  const dLat = rad(lat2 - lat1), dLon = rad(lon2 - lon1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(rad(lat1)) * Math.cos(rad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return 2 * R_EARTH * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+function bearingDeg(lat1, lon1, lat2, lon2) {
+  const y = Math.sin(rad(lon2 - lon1)) * Math.cos(rad(lat2));
+  const x = Math.cos(rad(lat1)) * Math.sin(rad(lat2)) - Math.sin(rad(lat1)) * Math.cos(rad(lat2)) * Math.cos(rad(lon2 - lon1));
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+const bearingPoint = deg => COMPASS[Math.round(((deg % 360) + 360) % 360 / 22.5) % 16];
+
+/* Every vertex of every county, used for “how far is that storm, really”. */
+const TW_VERTICES = (() => {
+  const out = [];
+  for (const f of TW_GEO.features) {
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+    for (const poly of polys) for (const ring of poly) for (const [lon, lat] of ring) out.push([lat, lon, f.properties.code]);
+  }
+  return out;
+})();
+function distanceToTaiwan(lat, lon) {
+  let best = Infinity, code = null;
+  for (const [la, lo, c] of TW_VERTICES) {
+    const d = haversine(lat, lon, la, lo);
+    if (d < best) { best = d; code = c; }
+  }
+  return { km: best, nearest: code };
+}
+const TW_CENTROID = { lat: 23.75, lon: 121.0 };
+
+/* Provenance. Every figure on screen can name where it came from. */
+function fmtRaw(v) {
+  if (v === undefined) return 'undefined';
+  if (v === null) return 'null';
+  if (typeof v === 'string') return '"' + v + '"';          // strings look like strings
+  if (typeof v === 'object') { try { return JSON.stringify(v); } catch (e) { return String(v); } }
+  return String(v);
+}
+/* Provenance input labels are prose, so they switch language too. Literal CWA
+   field names stay as CWA writes them. */
+const INPUT_LABELS = {
+  'max observed intensity':{zh:'最大觀測震度', ja:'最大観測震度'},
+  'ReportContent match':{zh:'報告內容比對到的字樣', ja:'報告文の一致文字列'},
+  'phenomena':{zh:'現象欄位', ja:'現象の項目'},
+  'latest fix → nearest Taiwan coast':{zh:'最新定位 → 最近的臺灣海岸', ja:'最新の解析位置 → 台湾の最寄り海岸'},
+  '15 m/s wind radius':{zh:'15 m/s 暴風半徑', ja:'15m/s の暴風半径'},
+  'distance minus wind radius':{zh:'距離減去暴風半徑', ja:'距離 − 暴風半径'},
+  'closest forecast position ≤24 h':{zh:'24 小時內最接近的預報位置', ja:'24時間以内で最も近い予報位置'},
+  'latest fix age':{zh:'最新定位距今', ja:'最新解析からの経過時間'},
+  'alerts in force for this county':{zh:'此縣市生效中的警報數', ja:'この県市で発表中の警報数'},
+  'counties resolved from the Chinese area names':{zh:'由中文地區名解析出的縣市', ja:'中国語の地域名から判定した県市'},
+  'county':{zh:'縣市', ja:'県市'},
+  'direction':{zh:'方位', ja:'方位'},
+  'distance (km)':{zh:'距離（公里）', ja:'距離（km）'},
+  'parenthetical':{zh:'括號內容', ja:'括弧内'},
+  'centre lat/lon':{zh:'中心經緯度', ja:'中心の緯度経度'},
+  'nearest county':{zh:'最接近的縣市', ja:'最も近い県市'},
+  'ShakingArea rows':{zh:'ShakingArea 列數', ja:'ShakingArea の行数'},
+  'observe rows':{zh:'observe 觀測列數', ja:'observe 行の数'}
+};
+const ilabel = x => { const e = INPUT_LABELS[x]; return e && e[state.lang] ? e[state.lang] : x; };
+const rule = (k, v) => ({ k: 'rules.' + k, v: v || {} });
+const note = (k, v) => ({ k: 'notes.' + k, v: v || {} });
+function phrase(x) {
+  if (!x) return '';
+  if (typeof x === 'string') return x;
+  const v = { ...(x.v || {}) };
+  if (v.sev) v.s = sevLabel(v.sev);
+  return t(x.k, v);
+}
+function annot(o) {
+  if (!o) return '';
+  const r = [];
+  r.push(o.computed
+    ? `<span class="tag calc">${esc(t('computed'))}</span>`
+    : `<span class="tag">${esc(t('fromField'))}</span>`);
+  if (o.rule) r.push(`<div><b>${esc(t('rule'))}:</b> ${esc(phrase(o.rule))}</div>`);
+  if (o.inputs && o.inputs.length) {
+    r.push(`<div><b>${esc(t('inputs'))}:</b><ul>` + o.inputs.map(i =>
+      `<li>${esc(ilabel(i.label))} = <span class="raw">${esc(fmtRaw(i.value))}</span>` +
+      (i.ds ? ` <i>(${esc(i.ds)}${i.path ? ' · ' + esc(i.path) : ''})</i>` : '') + `</li>`).join('') + `</ul></div>`);
+  }
+  if (o.ds) r.push(`<div><b>${esc(t('dataset'))}:</b> ${esc(o.ds)}</div>`);
+  if (o.path) r.push(`<div><b>${esc(t('path'))}:</b> <span class="raw">${esc(o.path)}</span></div>`);
+  if ('raw' in o) r.push(`<div><b>${esc(t('rawValue'))}:</b> <span class="raw">${esc(fmtRaw(o.raw))}</span></div>`);
+  if (o.issued) r.push(`<div><b>${esc(t('cwaIssued'))}:</b> ${esc(fmtFull(o.issued))}</div>`);
+  if (o.note) r.push(`<div>${esc(phrase(o.note))}</div>`);
+  if (o.url) r.push(`<div><a href="${esc(o.url)}" target="_blank" rel="noopener">${esc(t('openCwa'))} ↗</a></div>`);
+  return `<div class="prov">${r.join('')}</div>`;
+}
+/* A labelled row with its own source annotation. */
+function field(label, valueHtml, prov, cls) {
+  return `<div class="field"><div class="row"><span class="k">${esc(label)}</span>` +
+    `<span class="v ${cls || ''} ${prov ? 'annotated' : ''}">${valueHtml}</span></div>${annot(prov)}</div>`;
+}
+const listJoin = arr => arr.filter(Boolean).join(t('listSep'));
+
+/* --------------------------- 4. TRANSLATION ------------------------- */
+
+/* A CWA area name → a county code when one exists, a named sub-region when it
+   does not. Sub-county descriptors (南投地區, 山區, 蘭嶼綠島) resolve to no
+   county on purpose; they still have to appear somewhere. */
+function resolveRegion(zhRaw) {
+  const zh = String(zhRaw || '').trim();
+  const direct = ZH_TO_CODE[zh];
+  if (direct) return { code: direct, zh, sub: null, untranslated: false };
+  const stripped = zh.replace(/(地區|沿海|近海|山區|外海)$/, '');
+  if (ZH_TO_CODE[stripped] && stripped !== zh) {
+    return { code: ZH_TO_CODE[stripped], zh, sub: zh, untranslated: false };
+  }
+  if (SUBREGION_NAMES[zh]) return { code: null, zh, sub: zh, untranslated: false };
+  return { code: null, zh, sub: zh, untranslated: true };
+}
+function regionLabel(r) {
+  if (r.code) {
+    const c = BY_CODE[r.code];
+    return state.lang === 'en' ? c.en : state.lang === 'ja' ? c.ja : c.zh;
+  }
+  const s = SUBREGION_NAMES[r.zh];
+  if (s) return state.lang === 'en' ? s.en : state.lang === 'ja' ? s.ja : r.zh;
+  return state.lang === 'ja' ? toShinjitai(r.zh) : r.zh;
+}
+const countyLabel = code => {
+  const c = BY_CODE[code];
+  if (!c) return code;
+  return state.lang === 'en' ? c.en : state.lang === 'ja' ? c.ja : c.zh;
+};
+function phenomenonLabel(zh) {
+  const p = PHENOMENA[zh];
+  if (!p) return state.lang === 'ja' ? toShinjitai(zh) : zh;
+  return state.lang === 'en' ? p.en : state.lang === 'ja' ? p.ja : zh;
+}
+function significanceLabel(zh) {
+  if (zh === '特報') return state.lang === 'en' ? 'special weather report' : state.lang === 'ja' ? '特報' : '特報';
+  return state.lang === 'ja' ? toShinjitai(zh) : zh;
+}
+const intensityIndex = v => INTENSITY_SCALE.indexOf(String(v || '').trim());
+function intensityLabel(idx) {
+  if (idx < 0 || idx == null) return '—';
+  return INTENSITY_LABEL[state.lang] ? INTENSITY_LABEL[state.lang][idx] : INTENSITY_SCALE[idx];
+}
+
+/* CWA gives the epicenter only in Chinese, in a fixed pattern:
+   「臺東縣政府東南東方  43.0  公里 (位於臺灣東南部海域)」
+   Distance is measured from the county government office, and the parenthetical
+   often just repeats the county already named. Both matter. */
+function parseEpicenter(locRaw) {
+  const loc = String(locRaw || '').replace(/\s+/g, ' ').trim();
+  const m = /^(.+?)政府([東西南北]+)方\s*([\d.]+)\s*公里\s*(?:[（(]\s*(.*?)\s*[)）])?\s*$/.exec(loc);
+  const out = { ok: false, raw: locRaw, zh: loc, en: loc, ja: toShinjitai(loc), parts: {} };
+  if (!m) return out;
+  const [, countyZh, dirZh, distStr, parenRaw] = m;
+  const code = ZH_TO_CODE[countyZh] || null;
+  const county = code ? BY_CODE[code] : null;
+  const dir = COMPASS_ZH[dirZh] || { en: dirZh, ja: dirZh };
+  const dist = num(distStr);
+  const hallEn = county ? county.en + ' Hall' : countyZh + ' government';
+  const hallJa = county ? county.hallJa : toShinjitai(countyZh);
+
+  /* The parenthetical: keep what it adds, drop what it repeats. */
+  let tailEn = '', tailJa = '', untranslated = false, parenKept = null;
+  const paren = (parenRaw || '').replace(/^位於/, '').trim();
+  if (paren) {
+    parenKept = paren;
+    if (PLACE_TERMS[paren]) {
+      tailEn = PLACE_TERMS[paren].en; tailJa = PLACE_TERMS[paren].ja;
+    } else {
+      let innerCode = null, innerZh = '', rest = paren;
+      for (const c of COUNTIES) {
+        for (const nameVariant of [c.zh, c.zh.replace(/臺/g, '台')]) {
+          if (paren.startsWith(nameVariant)) { innerCode = c.code; innerZh = nameVariant; rest = paren.slice(nameVariant.length); }
+        }
+      }
+      const sameCounty = innerCode && innerCode === code;
+      if (innerCode && /^(近海|外海|沿海)$/.test(rest)) {
+        tailEn = sameCounty ? 'offshore' : 'offshore ' + BY_CODE[innerCode].en;
+        tailJa = sameCounty ? '沖合' : BY_CODE[innerCode].ja + '沖';
+      } else if (innerCode && DISTRICT_TERMS[rest]) {
+        tailEn = DISTRICT_TERMS[rest].en + (sameCounty ? '' : ', ' + BY_CODE[innerCode].en);
+        tailJa = DISTRICT_TERMS[rest].ja + (sameCounty ? '' : '・' + BY_CODE[innerCode].ja);
+      } else if (DISTRICT_TERMS[paren]) {
+        tailEn = DISTRICT_TERMS[paren].en; tailJa = DISTRICT_TERMS[paren].ja;
+      } else if (innerCode && rest === '') {
+        tailEn = sameCounty ? '' : BY_CODE[innerCode].en;
+        tailJa = sameCounty ? '' : BY_CODE[innerCode].ja;
+      } else {
+        untranslated = true;
+        tailEn = paren; tailJa = toShinjitai(paren);
+      }
+    }
+  }
+  out.ok = true;
+  out.zh = loc;
+  out.en = `${dist != null ? dist.toFixed(1) : distStr} km ${dir.en} of ${hallEn}` + (tailEn ? ', ' + tailEn : '');
+  out.ja = `${hallJa}の${dir.ja}${dist != null ? dist.toFixed(1) : distStr} km` + (tailJa ? '、' + tailJa : '');
+  out.parts = { countyZh, countyCode: code, dirZh, dirEn: dir.en, distanceKm: dist, paren: parenKept, untranslated };
+  return out;
+}
+const epicenterLabel = p => state.lang === 'en' ? p.en : state.lang === 'ja' ? p.ja : p.zh;
+
+/* ---------------------------- 5. SEVERITY --------------------------- */
+/* CWA publishes no severity tier — `significance` is the constant string 特報,
+   a flag and not a level. Everything below is this app's own computation. */
+
+const SEV_RANK = { severe: 3, warning: 2, advisory: 1, info: 0 };
+const worstOf = list => list.reduce((a, s) => (SEV_RANK[s] > SEV_RANK[a] ? s : a), 'info');
+const TSUNAMI_RE = /海嘯警報|海嘯警訊/;
+
+function quakeSeverity(maxIdx, reportContent) {
+  const content = String(reportContent || '');
+  if (TSUNAMI_RE.test(content)) {
+    return { sev: 'severe', rule: rule('quakeTsunami'),
+      inputs: [{ label: 'ReportContent match', value: (content.match(TSUNAMI_RE) || [''])[0] }] };
+  }
+  const inputs = [{ label: 'max observed intensity', value: maxIdx >= 0 ? INTENSITY_SCALE[maxIdx] : null }];
+  if (maxIdx >= INTENSITY_SCALE.indexOf('5弱')) return { sev: 'severe', rule: rule('quake5'), inputs };
+  if (maxIdx === INTENSITY_SCALE.indexOf('4級')) return { sev: 'warning', rule: rule('quake4'), inputs };
+  if (maxIdx >= 0) return { sev: 'advisory', rule: rule('quake03'), inputs };
+  return { sev: 'advisory', rule: rule('quakeNone'), inputs };
+}
+function weatherSeverity(phenom) {
+  const p = String(phenom || '');
+  const inputs = [{ label: 'phenomena', value: phenom, ds: DATASETS.warnCounty.id, path: 'hazardConditions.hazards[].info.phenomena' }];
+  if (PHENOMENA[p]) return { sev: PHENOMENA[p].sev, rule: rule('phenom', { p, sev: PHENOMENA[p].sev }), inputs };
+  for (const key of PHENOMENA_ORDER) {
+    if (p.includes(key)) return { sev: PHENOMENA[key].sev, rule: rule('phenomContains', { p: key, sev: PHENOMENA[key].sev }), inputs };
+  }
+  return { sev: 'advisory', rule: rule('phenomUnknown'), inputs };
+}
+const sevLabel = s => t('sev.' + s);
+const sevColor = s => s === 'severe' ? 'var(--severe)' : s === 'warning' ? 'var(--warning)'
+  : s === 'advisory' ? 'var(--advisory)' : s === 'info' ? 'var(--info)' : 'var(--none)';
+/* Fills for the maps run brighter than the text tones so they read at a glance
+   on paper-white; counties with nothing active stay a neutral slate. */
+const sevHex = s => ({ severe:'#DE3A26', warning:'#EE8B16', advisory:'#EFCB39', info:'#4B9BE0' }[s] || '#E4E8EC');
+
+/* ----------------------- 6. FETCH + NORMALISE ----------------------- */
+/* Five datasets, fetched concurrently, each rendered the moment it lands.
+   Everything below collapses them into ONE alert model; nothing in the UI
+   reads a CWA record directly. */
+
+const arr = x => Array.isArray(x) ? x : (x == null ? [] : [x]);
+
+async function fetchDataset(key) {
+  const ds = DATASETS[key];
+  state.ds[key] = { status: 'loading', data: null, error: null, at: null };
+  render();
+  try {
+    const res = await fetch(CWA_URL(ds.id), { mode: 'cors', cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status + ' ' + res.statusText);
+    const json = await res.json();
+    if (String(json.success) !== 'true') throw new Error('CWA envelope success = ' + fmtRaw(json.success));
+    state.ds[key] = { status: 'ok', data: json, error: null, at: new Date() };
+  } catch (err) {
+    state.ds[key] = { status: 'error', data: null, error: (err && err.message) || String(err), at: new Date() };
+  }
+  rebuild();
+  render();
+}
+const loadAll = () => Object.keys(DATASETS).forEach(fetchDataset);
+const dsOk = key => state.ds[key].status === 'ok' ? state.ds[key].data : null;
+
+/* ---- weather: W-C0033-001 (counties) + W-C0033-002 (narrative) ---- */
+function buildWeatherAlerts() {
+  const byKey = new Map();
+  const keyOf = (ph, s, e) => `${ph}|${s}|${e}`;
+
+  const county = dsOk('warnCounty');
+  if (county) {
+    const locations = arr(county.records && county.records.location);
+    for (const loc of locations) {
+      const hazards = arr(loc.hazardConditions && loc.hazardConditions.hazards);
+      /* 22 counties come back always; most carry an empty hazards array.
+         Appearing in the response is not the same as having a warning. */
+      for (const h of hazards) {
+        const info = h.info || {}, vt = h.validTime || {};
+        const k = keyOf(info.phenomena, vt.startTime, vt.endTime);
+        if (!byKey.has(k)) byKey.set(k, {
+          phenomena: info.phenomena, significance: info.significance,
+          startTime: vt.startTime, endTime: vt.endTime,
+          codes: new Set(), regions: [], narrative: null, rawCounty: [], rawText: null
+        });
+        const a = byKey.get(k);
+        const r = resolveRegion(loc.locationName);
+        if (r.code) a.codes.add(r.code);
+        if (!a.regions.some(x => x.zh === r.zh)) a.regions.push(r);
+        a.rawCounty.push({ locationName: loc.locationName, geocode: loc.geocode, hazard: h });
+      }
+    }
+  }
+
+  const text = dsOk('warnText');
+  if (text) {
+    for (const rec of arr(text.records && text.records.record)) {
+      const di = rec.datasetInfo || {}, vt = di.validTime || {};
+      /* contents.content is an object on some records and an array on others. */
+      const contents = arr(rec.contents && rec.contents.content);
+      const zh = contents.find(c => /zh/i.test(c.contentLanguage || '')) || contents[0] || null;
+      const en = contents.find(c => /^en/i.test(c.contentLanguage || '')) || null;
+      const hazards = arr(rec.hazardConditions && rec.hazardConditions.hazards && rec.hazardConditions.hazards.hazard);
+      for (const h of hazards) {
+        const info = h.info || {};
+        const k = keyOf(info.phenomena, vt.startTime, vt.endTime);
+        let a = byKey.get(k);
+        if (!a) {
+          /* Window boundaries can differ slightly between the two datasets. */
+          for (const [, cand] of byKey) {
+            if (cand.phenomena === info.phenomena) {
+              const s1 = +parseCwaTime(cand.startTime), e1 = +parseCwaTime(cand.endTime);
+              const s2 = +parseCwaTime(vt.startTime), e2 = +parseCwaTime(vt.endTime);
+              if (s1 <= e2 && s2 <= e1) { a = cand; break; }
+            }
+          }
+        }
+        if (!a) {
+          a = { phenomena: info.phenomena, significance: info.significance, startTime: vt.startTime,
+            endTime: vt.endTime, codes: new Set(), regions: [], narrative: null, rawCounty: [], rawText: null };
+          byKey.set(k, a);
+        }
+        a.issueTime = di.issueTime; a.updateTime = di.update;
+        a.datasetDescription = di.datasetDescription;
+        a.narrative = { zh: zh ? String(zh.contentText || '').trim() : null, zhLang: zh ? zh.contentLanguage : null,
+                        en: en ? String(en.contentText || '').trim() : null, enLang: en ? en.contentLanguage : null };
+        a.rawText = rec;
+        for (const loc of arr(info.affectedAreas && info.affectedAreas.location)) {
+          const r = resolveRegion(loc.locationName);
+          if (r.code) a.codes.add(r.code);
+          if (!a.regions.some(x => x.zh === r.zh)) a.regions.push(r);
+        }
+      }
+    }
+  }
+
+  const out = [];
+  for (const [k, a] of byKey) {
+    const sev = weatherSeverity(a.phenomena);
+    const start = parseCwaTime(a.startTime), end = parseCwaTime(a.endTime);
+    out.push({
+      id: 'wx:' + k, hazardType: 'weather', severity: sev.sev, severityBasis: sev,
+      issuedAt: parseCwaTime(a.issueTime) || start, expiresAt: end, startsAt: start,
+      affectedRegions: [...a.codes], regions: a.regions,
+      payload: a, datasetIds: [DATASETS.warnCounty.id, DATASETS.warnText.id],
+      sourceUrl: 'https://www.cwa.gov.tw/V8/' + (state.lang === 'en' ? 'E' : 'C') + '/W/Warning/Warning.html',
+      raw: { fromWarnCounty: a.rawCounty, fromWarnText: a.rawText }
+    });
+  }
+  return out;
+}
+
+/* ---- earthquakes: E-A0015-001 + E-A0016-001 ---- */
+function readShakingArea(eq) {
+  const rows = arr(eq.Intensity && eq.Intensity.ShakingArea);
+  /* Authoritative rows carry InfoStatus:"observe" and one county each; the rest
+     are summary rows ("最大震度4級地區") whose CountyName is a 、-joined list. */
+  const observe = rows.filter(r => r.InfoStatus === 'observe');
+  const use = observe.length ? observe : rows;
+  const byCounty = new Map();
+  for (const r of use) {
+    const idx = intensityIndex(r.AreaIntensity);
+    if (idx < 0) continue;
+    for (const nm of String(r.CountyName || '').split(/[、,]/).map(s => s.trim()).filter(Boolean)) {
+      const res = resolveRegion(nm);
+      if (!res.code) continue;
+      if (!byCounty.has(res.code) || byCounty.get(res.code) < idx) byCounty.set(res.code, idx);
+    }
+  }
+  return { byCounty, usedObserve: observe.length > 0, rowCount: rows.length, observeCount: observe.length };
+}
+function buildQuakes() {
+  const seen = new Map();
+  const pull = (key, tag) => {
+    const d = dsOk(key); if (!d) return;
+    for (const eq of arr(d.records && d.records.Earthquake)) {
+      const info = eq.EarthquakeInfo || {}, epi = info.Epicenter || {}, mag = info.EarthquakeMagnitude || {};
+      const origin = parseCwaTime(info.OriginTime);
+      if (!origin) continue;
+      /* E-A0016-001 reuses one EarthquakeNo for every quake in the response.
+         OriginTime is the only usable key. */
+      const id = 'eq:' + info.OriginTime;
+      const shaking = readShakingArea(eq);
+      let maxIdx = -1, maxCode = null;
+      for (const [code, idx] of shaking.byCounty) if (idx > maxIdx) { maxIdx = idx; maxCode = code; }
+      const sev = quakeSeverity(maxIdx, eq.ReportContent);
+      const q = {
+        id, source: tag, dsId: DATASETS[key].id,
+        originTime: origin, issueTime: parseCwaTime(eq.IssueTime),
+        validEnd: parseCwaTime(eq.ValidTime && eq.ValidTime.EndTime),
+        earthquakeNo: eq.EarthquakeNo,
+        magnitude: num(mag.MagnitudeValue), magnitudeType: mag.MagnitudeType,
+        depth: num(info.FocalDepth),
+        lat: num(epi.EpicenterLatitude), lon: num(epi.EpicenterLongitude),
+        epicenterRaw: epi.Location, epicenter: parseEpicenter(epi.Location),
+        reportContent: eq.ReportContent, reportColor: eq.ReportColor, remark: eq.ReportRemark,
+        web: eq.Web, image: eq.ReportImageURI, shakemap: eq.ShakemapImageURI,
+        intensityByCounty: shaking.byCounty, shakingMeta: shaking,
+        maxIdx, maxCode, tsunami: TSUNAMI_RE.test(String(eq.ReportContent || '')),
+        severity: sev.sev, severityBasis: sev, raw: eq
+      };
+      const prev = seen.get(id);
+      if (!prev || (prev.source === 'small' && tag === 'significant')) seen.set(id, q);
+    }
+  };
+  pull('quakeBig', 'significant');
+  pull('quakeSmall', 'small');
+  return [...seen.values()].sort((a, b) => b.originTime - a.originTime);
+}
+function quakeToAlert(q) {
+  return {
+    id: q.id, hazardType: 'earthquake', severity: q.severity, severityBasis: q.severityBasis,
+    issuedAt: q.issueTime, expiresAt: q.validEnd, startsAt: q.originTime,
+    affectedRegions: [...q.intensityByCounty.keys()],
+    regions: [...q.intensityByCounty.keys()].map(c => ({ code: c, zh: BY_CODE[c].zh, sub: null, untranslated: false })),
+    payload: q, datasetIds: [q.dsId], sourceUrl: q.web, raw: q.raw
+  };
+}
+
+/* ---- tropical cyclones: W-C0034-005 ---- */
+function buildCyclones() {
+  const d = dsOk('typhoon'); if (!d) return [];
+  const list = arr(d.records && d.records.TropicalCyclones && d.records.TropicalCyclones.TropicalCyclone);
+  const now = state.now;
+  return list.map((tc, i) => {
+    const fixes = arr(tc.AnalysisData && tc.AnalysisData.Fix).map(f => ({
+      time: parseCwaTime(f.DateTime), lat: num(f.CoordinateLatitude), lon: num(f.CoordinateLongitude),
+      wind: num(f.MaxWindSpeed), gust: num(f.MaxGustSpeed), pressure: num(f.Pressure),
+      moveSpeed: num(f.MovingSpeed), moveDir: f.MovingDirection,
+      r15: num(f.Circle15ms && f.Circle15ms.Radius), r25: num(f.Circle25ms && f.Circle25ms.Radius),
+      prediction: arr(f.MovingPrediction).reduce((o, p) => (o[/en/i.test(p.lang) ? 'en' : 'zh'] = p.value, o), {}),
+      raw: f
+    })).filter(f => f.time && f.lat != null && f.lon != null).sort((a, b) => a.time - b.time);
+    const forecast = arr(tc.ForecastData && tc.ForecastData.Fix).map(f => {
+      const init = parseCwaTime(f.InitialTime), hr = num(f.ForecastHour);
+      return {
+        initTime: init, hour: hr, time: init && hr != null ? new Date(+init + hr * 3600e3) : null,
+        lat: num(f.CoordinateLatitude), lon: num(f.CoordinateLongitude),
+        wind: num(f.MaxWindSpeed), gust: num(f.MaxGustSpeed), pressure: num(f.Pressure),
+        moveSpeed: num(f.MovingSpeed), moveDir: f.MovingDirection,
+        r15: num(f.Circle15ms && f.Circle15ms.Radius), r25: num(f.Circle25ms && f.Circle25ms.Radius),
+        r70: num(f.Radius70PercentProbability),
+        stateTransfer: arr(f.StateTransfer).reduce((o, p) => (o[/en/i.test(p.lang) ? 'en' : 'zh'] = p.value, o), {}),
+        raw: f
+      };
+    }).filter(f => f.lat != null && f.lon != null).sort((a, b) => (a.hour || 0) - (b.hour || 0));
+
+    const latest = fixes[fixes.length - 1] || null;
+    const ageH = latest ? (now - latest.time) / 3600e3 : Infinity;
+    const stale = !(ageH < 12);           /* last known track is served long after a storm has gone */
+    const dTw = latest ? distanceToTaiwan(latest.lat, latest.lon) : { km: null, nearest: null };
+    const edge = latest && dTw.km != null ? dTw.km - (latest.r15 || 0) : null;
+    let min24 = null, min24At = null;
+    for (const f of forecast) {
+      if (!f.time || f.time - now > 24 * 3600e3 || (f.hour != null && f.hour > 24)) continue;
+      const dd = distanceToTaiwan(f.lat, f.lon).km;
+      if (min24 == null || dd < min24) { min24 = dd; min24At = f; }
+    }
+    const near = !stale && ((edge != null && edge <= 300) || (min24 != null && min24 <= 300));
+    const bear = latest ? bearingDeg(TW_CENTROID.lat, TW_CENTROID.lon, latest.lat, latest.lon) : null;
+    return {
+      idx: i, nameEn: tc.TyphoonName, nameZh: tc.CwaTyphoonName, tyNo: tc.CwaTyNo, tdNo: tc.CwaTdNo, year: tc.Year,
+      fixes, forecast, latest, stale, ageH, distanceKm: dTw.km, nearestCode: dTw.nearest,
+      edgeKm: edge, min24Km: min24, min24At, near, bearing: bear,
+      bearingPoint: bear != null ? bearingPoint(bear) : null,
+      proximityBasis: {
+        rule: rule('proximity'),
+        inputs: [
+          { label: 'latest fix → nearest Taiwan coast', value: dTw.km != null ? Math.round(dTw.km) + ' km' : null },
+          { label: '15 m/s wind radius', value: latest ? latest.raw.Circle15ms && latest.raw.Circle15ms.Radius : null, ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].Circle15ms.Radius' },
+          { label: 'distance minus wind radius', value: edge != null ? Math.round(edge) + ' km' : null },
+          { label: 'closest forecast position ≤24 h', value: min24 != null ? Math.round(min24) + ' km' : 'none within 24 h' },
+          { label: 'latest fix age', value: isFinite(ageH) ? ageH.toFixed(1) + ' h' : 'unknown' }
+        ]
+      },
+      raw: tc
+    };
+  });
+}
+function cycloneToAlert(c) {
+  const f = c.latest;
+  const reach25 = f && c.distanceKm != null && f.r25 != null && c.distanceKm <= f.r25;
+  const reach15 = f && c.distanceKm != null && f.r15 != null && c.distanceKm <= f.r15;
+  const sev = reach25 ? 'severe' : reach15 ? 'warning' : 'advisory';
+  const codes = new Set();
+  if (f && f.r15) {
+    for (const [la, lo, code] of TW_VERTICES) if (haversine(f.lat, f.lon, la, lo) <= f.r15 + 60) codes.add(code);
+  }
+  if (!codes.size && c.nearestCode) codes.add(c.nearestCode);
+  return {
+    id: 'ty:' + (c.nameEn || c.idx), hazardType: 'typhoon', severity: sev,
+    severityBasis: { sev, rule: rule(reach25 ? 'ty25' : reach15 ? 'ty15' : 'ty300'), inputs: c.proximityBasis.inputs },
+    issuedAt: f ? f.time : null, expiresAt: f ? new Date(+f.time + 12 * 3600e3) : null, startsAt: f ? f.time : null,
+    affectedRegions: [...codes],
+    regions: [...codes].map(code => ({ code, zh: BY_CODE[code].zh, sub: null, untranslated: false })),
+    payload: c, datasetIds: [DATASETS.typhoon.id],
+    sourceUrl: 'https://www.cwa.gov.tw/V8/' + (state.lang === 'en' ? 'E' : 'C') + '/P/Typhoon/TY_NEWS.html',
+    raw: c.raw
+  };
+}
+
+function rebuild() {
+  state.now = new Date();
+  state.quakes = buildQuakes();
+  state.cyclones = buildCyclones();
+  const alerts = [
+    ...buildWeatherAlerts(),
+    ...state.quakes.map(quakeToAlert),
+    ...state.cyclones.filter(c => c.near).map(cycloneToAlert)
+  ];
+  alerts.sort((a, b) => (SEV_RANK[b.severity] - SEV_RANK[a.severity]) || ((b.issuedAt || 0) - (a.issuedAt || 0)));
+  state.alerts = alerts;
+  if (state.quakeId == null || !state.quakes.some(q => q.id === state.quakeId)) {
+    state.quakeId = state.quakes.length ? state.quakes[0].id : null;
+  }
+  if (state.cycloneIdx >= state.cyclones.length) state.cycloneIdx = 0;
+}
+const isActive = a => a.expiresAt ? a.expiresAt > state.now : false;
+const activeAlerts = () => state.alerts.filter(isActive);
+function severityByCounty() {
+  const m = new Map();
+  for (const a of activeAlerts()) {
+    for (const code of a.affectedRegions) {
+      if (!m.has(code) || SEV_RANK[a.severity] > SEV_RANK[m.get(code)]) m.set(code, a.severity);
+    }
+  }
+  return m;
+}
+
+/* ------------------- 7. PROJECTION + MAP DRAWING -------------------- */
+/* Written once. The home alert map, the shaking choropleth and the storm
+   track all call it, so a county's shape is identical in all three. */
+
+function makeProjection(bbox, w, h, pad) {
+  const lat0 = (bbox.minLat + bbox.maxLat) / 2;
+  const kx = Math.cos(rad(lat0));                       // equirectangular: squeeze longitude
+  const dx = (bbox.maxLon - bbox.minLon) * kx;
+  const dy = (bbox.maxLat - bbox.minLat);
+  const s = Math.min((w - 2 * pad) / dx, (h - 2 * pad) / dy);
+  const ox = (w - dx * s) / 2, oy = (h - dy * s) / 2;
+  const X = lon => ox + (lon - bbox.minLon) * kx * s;
+  const Y = lat => oy + (bbox.maxLat - lat) * s;
+  return {
+    X, Y, scale: s, kx, bbox, w, h,
+    kmY: km => km / 110.574 * s,
+    kmX: (km, atLat) => km / (111.320 * Math.cos(rad(atLat))) * kx * s,
+    pxPerKm: 1 / 110.574 * s
+  };
+}
+function featurePath(feature, proj) {
+  const polys = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+  let d = '';
+  for (const poly of polys) {
+    for (const ring of poly) {
+      d += ring.map(([lon, lat], i) => (i ? 'L' : 'M') + proj.X(lon).toFixed(2) + ',' + proj.Y(lat).toFixed(2)).join(' ') + 'Z';
+    }
+  }
+  return d;
+}
+function featureBBox(codes, padDeg) {
+  const p = padDeg || 0;
+  let minLon = 180, maxLon = -180, minLat = 90, maxLat = -90;
+  for (const f of TW_GEO.features) {
+    if (codes && !codes.includes(f.properties.code)) continue;
+    const polys = f.geometry.type === 'Polygon' ? [f.geometry.coordinates] : f.geometry.coordinates;
+    for (const poly of polys) for (const ring of poly) for (const [lon, lat] of ring) {
+      if (lon < minLon) minLon = lon; if (lon > maxLon) maxLon = lon;
+      if (lat < minLat) minLat = lat; if (lat > maxLat) maxLat = lat;
+    }
+  }
+  return { minLon: minLon - p, maxLon: maxLon + p, minLat: minLat - p, maxLat: maxLat + p };
+}
+/* Taiwan + Penghu. Kinmen and Lienchiang sit far outside it and get insets. */
+const MAIN_BBOX = { minLon: 119.42, maxLon: 122.08, minLat: 21.82, maxLat: 25.38 };
+const INSET_CODES = ['TW-KIN', 'TW-LIE'];
+const MAIN_CODES = COUNTIES.map(c => c.code).filter(c => !INSET_CODES.includes(c));
+
+function countyFillAttrs(code, fills, selected) {
+  const fill = (fills && fills.get(code)) || 'var(--none)';
+  const isSel = code === selected;
+  return `fill="${fill}" stroke="${isSel ? '#11161B' : 'rgba(255,255,255,.92)'}" stroke-width="${isSel ? 2.2 : 0.8}"` +
+         (isSel ? ' stroke-linejoin="round" paint-order="fill stroke"' : '');
+}
+function drawCounties(codes, proj, fills, selected, interactive) {
+  const feats = TW_GEO.features.filter(f => codes.includes(f.properties.code))
+    .sort((a, b) => (a.properties.code === selected ? 1 : 0) - (b.properties.code === selected ? 1 : 0));
+  return feats.map(f => {
+    const code = f.properties.code;
+    return `<path class="county" d="${featurePath(f, proj)}" ${countyFillAttrs(code, fills, selected)}` +
+      (interactive ? ` data-county="${code}" role="button" tabindex="0"><title>${esc(countyLabel(code))}</title></path>` : `></path>`);
+  }).join('');
+}
+function drawInset(code, x, y, w, h, fills, selected, label) {
+  const bb = featureBBox([code], 0.012);
+  const p = makeProjection(bb, w, h, 7);
+  const f = TW_GEO.features.find(ft => ft.properties.code === code);
+  return `<g transform="translate(${x},${y})">
+    <rect class="insetbox" x="0.5" y="0.5" width="${w - 1}" height="${h - 1}" rx="5"></rect>
+    <path class="county" d="${featurePath(f, p)}" ${countyFillAttrs(code, fills, selected)} data-county="${code}" role="button" tabindex="0"><title>${esc(countyLabel(code))}</title></path>
+    <text class="maplabel" x="${w / 2}" y="${h - 5}" text-anchor="middle">${esc(label)}</text>
+  </g>`;
+}
+
+/* The nationwide alert map: every county filled by its highest active severity. */
+function taiwanAlertMap(fills, selected, opts) {
+  const o = opts || {};
+  const W = 390, H = 362;
+  const proj = makeProjection(MAIN_BBOX, W, H, 10);
+  const insetW = 72, insetH = 54;
+  return `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(t('mapTitle'))}" preserveAspectRatio="xMidYMid meet">
+    ${drawCounties(MAIN_CODES, proj, fills, selected, true)}
+    ${drawInset('TW-KIN', 8, H - insetH - 74, insetW, insetH, fills, selected, state.lang === 'en' ? 'KINMEN' : state.lang === 'ja' ? '金門' : '金門')}
+    ${drawInset('TW-LIE', 8, H - insetH - 8, insetW, insetH, fills, selected, state.lang === 'en' ? 'MATSU' : state.lang === 'ja' ? '馬祖' : '馬祖')}
+    ${o.extra ? o.extra(proj) : ''}
+  </svg>`;
+}
+
+/* The storm track map: same projection code, same county geometry. */
+function typhoonMap(c, W, H, out) {
+  const pts = [...c.fixes.slice(-14), ...c.forecast].filter(p => p.lat != null);
+  const twPad = 0.55;
+  const twBox = { minLon: MAIN_BBOX.minLon - twPad, maxLon: MAIN_BBOX.maxLon + twPad,
+                  minLat: MAIN_BBOX.minLat - twPad, maxLat: MAIN_BBOX.maxLat + twPad };
+  let box = { ...twBox }, mode = 'both';
+  for (const p of pts) {
+    box.minLon = Math.min(box.minLon, p.lon - 1.2); box.maxLon = Math.max(box.maxLon, p.lon + 1.2);
+    box.minLat = Math.min(box.minLat, p.lat - 1.2); box.maxLat = Math.max(box.maxLat, p.lat + 1.2);
+  }
+  let proj = makeProjection(box, W, H, 12);
+  /* Never let Taiwan shrink to an unrecognisable speck to fit a distant storm. */
+  const twWidthPx = (MAIN_BBOX.maxLon - MAIN_BBOX.minLon) * proj.kx * proj.scale;
+  if (twWidthPx < W * 0.3) { mode = 'taiwan'; proj = makeProjection(twBox, W, H, 12); }
+  if (out) out.mode = mode;
+
+  const fills = new Map();
+  const counties = drawCounties(COUNTIES.map(x => x.code), proj, fills, null, false);
+
+  let g = '';
+  {
+    const obs = c.fixes.filter(f => f.lat != null);
+    if (obs.length > 1) {
+      g += `<path d="${obs.map((f, i) => (i ? 'L' : 'M') + proj.X(f.lon).toFixed(1) + ',' + proj.Y(f.lat).toFixed(1)).join(' ')}"
+        fill="none" stroke="#1A6CB5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".92"></path>`;
+    }
+    for (const f of obs) g += `<circle cx="${proj.X(f.lon).toFixed(1)}" cy="${proj.Y(f.lat).toFixed(1)}" r="2" fill="#1A6CB5" opacity=".7"></circle>`;
+    const fc = c.forecast.filter(f => f.lat != null);
+    if (c.latest && fc.length) {
+      const chain = [c.latest, ...fc];
+      g += `<path d="${chain.map((f, i) => (i ? 'L' : 'M') + proj.X(f.lon).toFixed(1) + ',' + proj.Y(f.lat).toFixed(1)).join(' ')}"
+        fill="none" stroke="#C2660A" stroke-width="2" stroke-dasharray="6 5" stroke-linecap="round" opacity=".95"></path>`;
+      for (const f of fc) {
+        g += `<circle cx="${proj.X(f.lon).toFixed(1)}" cy="${proj.Y(f.lat).toFixed(1)}" r="3" fill="#FFFFFF" stroke="#C2660A" stroke-width="1.5"></circle>`;
+        g += `<text class="maplabel" x="${(proj.X(f.lon) + 6).toFixed(1)}" y="${(proj.Y(f.lat) - 5).toFixed(1)}" fill="#A85800">+${f.hour}H</text>`;
+      }
+    }
+    const f = c.latest;
+    if (f) {
+      const cx = proj.X(f.lon), cy = proj.Y(f.lat);
+      if (f.r15) g += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${proj.kmX(f.r15, f.lat).toFixed(1)}" ry="${proj.kmY(f.r15).toFixed(1)}"
+        fill="rgba(26,108,181,.10)" stroke="rgba(26,108,181,.5)" stroke-width="1"></ellipse>`;
+      if (f.r25) g += `<ellipse cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" rx="${proj.kmX(f.r25, f.lat).toFixed(1)}" ry="${proj.kmY(f.r25).toFixed(1)}"
+        fill="rgba(196,25,11,.1)" stroke="rgba(196,25,11,.6)" stroke-width="1"></ellipse>`;
+      g += `<g transform="translate(${cx.toFixed(1)},${cy.toFixed(1)})">
+        <circle r="5.5" fill="#C4190B" stroke="#FFFFFF" stroke-width="1.4"></circle>
+        <circle r="10.5" fill="none" stroke="#C4190B" stroke-width="1.2" opacity=".6"></circle>
+        </g>`;
+    }
+  }
+  const lf = c.latest;
+  const offFrame = !lf || proj.X(lf.lon) < 6 || proj.X(lf.lon) > W - 6 || proj.Y(lf.lat) < 6 || proj.Y(lf.lat) > H - 6;
+  if (out) out.offFrame = offFrame;
+  if (offFrame) {
+    /* Storm is off-frame: keep Taiwan readable, point at the storm instead. */
+    const cx = proj.X(TW_CENTROID.lon), cy = proj.Y(TW_CENTROID.lat);
+    const th = rad(c.bearing || 0);
+    const dx = Math.sin(th), dy = -Math.cos(th);
+    const len = Math.min(W, H) * 0.42;
+    const ex = cx + dx * len, ey = cy + dy * len;
+    g += `<line x1="${cx.toFixed(1)}" y1="${cy.toFixed(1)}" x2="${ex.toFixed(1)}" y2="${ey.toFixed(1)}"
+      stroke="#C2660A" stroke-width="2" stroke-dasharray="7 6" marker-end="url(#arrow)"></line>`;
+    const mx = cx + dx * len * 0.56 - dy * 13, my = cy + dy * len * 0.56 + dx * 13;
+    g += `<text class="maplabel" x="${Math.max(50, Math.min(W - 50, mx)).toFixed(1)}" y="${Math.max(14, Math.min(H - 14, my)).toFixed(1)}"
+      fill="#8F4A00" text-anchor="middle" stroke="#D5E3F0" stroke-width="3.5" paint-order="stroke" style="font-size:9.5px">
+      ${esc(t('stormArrow', { name: cycloneName(c), d: c.distanceKm != null ? Math.round(c.distanceKm) : '?', dir: dirLabel(c.bearingPoint) }))}</text>`;
+  }
+  /* scale bar */
+  const targetPx = W * 0.22;
+  let km = 50; const steps = [25, 50, 100, 200, 300, 500, 800, 1200, 2000];
+  for (const s of steps) if (proj.pxPerKm * s <= targetPx) km = s;
+  const barPx = proj.pxPerKm * km;
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="storm track">
+    <defs>
+      <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M0,0 L10,5 L0,10 z" fill="#C2660A"></path></marker>
+    </defs>
+    ${counties}${g}
+    <g transform="translate(14,${H - 16})">
+      <line x1="0" y1="0" x2="${barPx.toFixed(1)}" y2="0" stroke="var(--ink3)" stroke-width="1.5"></line>
+      <line x1="0" y1="-4" x2="0" y2="4" stroke="var(--ink3)" stroke-width="1.5"></line>
+      <line x1="${barPx.toFixed(1)}" y1="-4" x2="${barPx.toFixed(1)}" y2="4" stroke="var(--ink3)" stroke-width="1.5"></line>
+      <text class="maplabel" x="${(barPx + 6).toFixed(1)}" y="3.5">${km} KM</text>
+    </g>
+  </svg>`;
+}
+const moveDirLabel = code => {
+  const cp = COMPASS.find(x => x[1] === String(code || '').toUpperCase());
+  return cp ? dirLabel(cp) : (code || '—');
+};
+const dirLabel = cp => cp ? (state.lang === 'en' ? cp[1] : state.lang === 'ja' ? cp[2] : cp[0]) : '—';
+function cycloneName(c) {
+  const en = c.nameEn ? c.nameEn.charAt(0) + c.nameEn.slice(1).toLowerCase() : '—';
+  if (state.lang === 'zh') return `${c.nameZh || en}${c.nameZh ? `（${c.nameEn}）` : ''}`;
+  if (state.lang === 'ja') return `${toShinjitai(c.nameZh || '')}${c.nameZh ? `（${c.nameEn}）` : en}`;
+  return en;
+}
+
+/* ------------------------------ 8. VIEWS ---------------------------- */
+
+function regionNames(a, max) {
+  const names = [];
+  for (const code of a.affectedRegions) names.push(countyLabel(code));
+  for (const r of (a.regions || [])) if (!r.code) names.push(regionLabel(r));
+  const uniq = [...new Set(names)];
+  if (max && uniq.length > max) return uniq.slice(0, max).join(t('listSep')) + ` +${uniq.length - max}`;
+  return uniq.join(t('listSep'));
+}
+function alertHeadline(a) {
+  if (a.hazardType === 'weather') {
+    return t('weatherHeadline', { p: phenomenonLabel(a.payload.phenomena), areas: regionNames(a, 3) || '—' });
+  }
+  if (a.hazardType === 'earthquake') {
+    const q = a.payload;
+    return t('quakeHeadline', { m: q.magnitude != null ? q.magnitude.toFixed(1) : '—',
+      i: intensityLabel(q.maxIdx), c: q.maxCode ? countyLabel(q.maxCode) : '—' });
+  }
+  const c = a.payload;
+  return t('typhoonHeadline', { name: cycloneName(c), d: c.distanceKm != null ? Math.round(c.distanceKm) : '?' });
+}
+/* Assume the official English is missing — it usually is. Every alert gets a
+   readable body built from the structured fields in all three languages. */
+function alertBody(a) {
+  if (a.hazardType === 'weather') {
+    return t('weatherBody', {
+      p: phenomenonLabel(a.payload.phenomena), sig: significanceLabel(a.payload.significance || '特報'),
+      areas: regionNames(a, 6) || '—', from: fmtDTp(a.startsAt), to: fmtDTp(a.expiresAt)
+    });
+  }
+  if (a.hazardType === 'earthquake') {
+    const q = a.payload;
+    return t('quakeBody', { m: q.magnitude != null ? q.magnitude.toFixed(1) : '—', t: fmtDTp(q.originTime),
+      loc: epicenterLabel(q.epicenter), d: q.depth != null ? q.depth.toFixed(1) : '—',
+      i: intensityLabel(q.maxIdx), c: q.maxCode ? countyLabel(q.maxCode) : '—' });
+  }
+  const c = a.payload, f = c.latest || {};
+  return t('weatherBody', { p: cycloneName(c), sig: '', areas: regionNames(a, 6) || '—',
+    from: fmtDTp(f.time), to: fmtDTp(a.expiresAt) }).replace(/\s+\(\)/, '');
+}
+function alertProv(a) {
+  const p = a.payload;
+  let src = '';
+  if (a.hazardType === 'weather') {
+    src = annot({ ds: DATASETS.warnCounty.id + ' + ' + DATASETS.warnText.id,
+      path: 'records.location[].hazardConditions.hazards[].info.phenomena · .validTime · records.record[].hazardConditions.hazards.hazard[].info.affectedAreas.location[].locationName',
+      raw: { phenomena: p.phenomena, significance: p.significance, startTime: p.startTime, endTime: p.endTime },
+      issued: a.issuedAt, url: a.sourceUrl });
+  } else if (a.hazardType === 'earthquake') {
+    const ei = p.raw.EarthquakeInfo || {};
+    src = annot({ ds: p.dsId,
+      path: 'records.Earthquake[].EarthquakeInfo (OriginTime · EarthquakeMagnitude.MagnitudeValue · FocalDepth · Epicenter.Location) + .Intensity.ShakingArea[]',
+      raw: { OriginTime: ei.OriginTime, MagnitudeValue: ei.EarthquakeMagnitude && ei.EarthquakeMagnitude.MagnitudeValue,
+             FocalDepth: ei.FocalDepth, Location: ei.Epicenter && ei.Epicenter.Location },
+      issued: p.issueTime, url: p.web });
+  } else {
+    src = annot({ ds: DATASETS.typhoon.id, path: 'records.TropicalCyclones.TropicalCyclone[].AnalysisData.Fix[last]',
+      raw: p.latest && p.latest.raw, issued: p.latest && p.latest.time, url: a.sourceUrl });
+  }
+  const hasOfficialEn = a.hazardType === 'weather' && p.narrative && p.narrative.en;
+  return src
+    + annot({ computed: true, rule: a.severityBasis.rule, inputs: a.severityBasis.inputs })
+    + annot({ computed: true,
+        rule: rule(hasOfficialEn ? 'headlineGenEn' : 'headlineGen'),
+        inputs: [{ label: 'counties resolved from the Chinese area names', value: a.affectedRegions.join(', ') || 'none — sub-county area only' }] });
+}
+function alertCard(a) {
+  const mine = a.affectedRegions.includes(state.county);
+  return `<div class="sev-${a.severity}"><button class="alert fade" data-alert="${esc(a.id)}">
+    <div class="meta">
+      <span class="sevchip">${esc(sevLabel(a.severity))}</span>
+      ${mine ? `<span class="chip me">${esc(countyLabel(state.county))}</span>` : ''}
+      <span class="time">${esc(relTime(a.issuedAt, state.now))}</span>
+    </div>
+    <h3>${esc(alertHeadline(a))}</h3>
+    <div class="body">${esc(alertBody(a))}</div>
+    <div class="meta">${(a.regions || []).slice(0, 5).map(r =>
+      `<span class="chip ${r.code === state.county ? 'me' : r.code ? '' : 'ghost'}">${esc(r.code ? countyLabel(r.code) : regionLabel(r))}</span>`).join('')}
+      ${a.expiresAt ? `<span class="time">${esc(t('until'))} ${esc(fmtDT(a.expiresAt))}</span>` : ''}
+    </div>
+  </button>${alertProv(a)}</div>`;
+}
+
+function dataPanel() {
+  const rows = Object.keys(DATASETS).map(key => {
+    const ds = DATASETS[key], s = state.ds[key];
+    const pip = s.status === 'ok' ? 'ok' : s.status === 'error' ? 'bad' : 'wait';
+    const right = s.status === 'ok' ? t('loadedAt', { t: fmtClock(s.at) })
+      : s.status === 'error' ? `<span style="color:var(--severe)">${esc(t('failed'))}</span> · ${esc(s.error)}`
+      : t('loading');
+    return `<div class="ds"><span class="pip ${pip}"></span><b style="color:var(--ink2)">${esc(ds.id)}</b>
+      <span style="flex:1;min-width:0;color:var(--ink3)">${esc(L(ds.desc))}</span>
+      <span style="text-align:right">${right}</span>
+      ${s.status === 'error' ? `<button class="chip" data-retry="${key}">${esc(t('retry'))}</button>` : ''}</div>`;
+  }).join('');
+  const anyFail = Object.keys(DATASETS).some(k => state.ds[k].status === 'error');
+  return `<div class="card pad">
+    <div class="micro" style="margin-bottom:6px">${esc(t('dataStatus'))}</div>
+    ${rows}
+    ${anyFail ? `<div class="note" style="color:var(--severe);margin-top:8px">${esc(t('failedNote'))}</div>` : ''}
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+      <button class="chip" data-action="refresh">${esc(t('refresh'))} ↻</button>
+      <span class="time">${esc(fmtFull(state.now))}</span>
+    </div></div>`;
+}
+
+function viewHome() {
+  const sevMap = severityByCounty();
+  const fills = new Map([...sevMap].map(([c, s]) => [c, sevHex(s)]));
+  const mine = activeAlerts().filter(a => a.affectedRegions.includes(state.county));
+  const others = activeAlerts().filter(a => !a.affectedRegions.includes(state.county));
+  const top = mine.length ? worstOf(mine.map(a => a.severity)) : 'none';
+  const q = state.quakes[0] || null;
+
+  const hero = `<div class="hero sev-${top === 'none' ? 'none' : top}">
+    <div class="bar"></div>
+    <div style="min-width:0">
+      <div class="micro">${esc(t('yourCounty'))}</div>
+      <div class="word" ${top === 'none' ? 'style="color:var(--ink)"' : ''}>${esc(top === 'none' ? t('sev.none') : sevLabel(top))}</div>
+      <div class="where">${esc(countyLabel(state.county))}${mine.length ? ' · ' + esc(t('nActive', { n: mine.length })) : ''}</div>
+    </div></div>
+    ${annot({ computed: true, rule: rule('heroMax'),
+      inputs: mine.length ? mine.map(a => ({ label: alertHeadline(a), value: a.severity })) : [{ label: 'alerts in force for this county', value: 0 }] })}`;
+
+  const status = mine.length
+    ? `<div class="status"><span class="sevchip sev-${top}">${esc(sevLabel(top))}</span><div>${esc(t('statusActive', { n: mine.length, c: countyLabel(state.county), s: sevLabel(top) }))}</div></div>`
+    : `<div class="status"><div><div>${esc(t('statusClear', { c: countyLabel(state.county) }))}</div>
+        <div class="note" style="margin-top:4px">${esc(t('statusClearNote'))}</div></div></div>`;
+
+  const legend = `<div class="legend">
+    ${['severe','warning','advisory','info'].map(s => `<span class="li"><span class="sw" style="background:${sevHex(s)}"></span>${esc(sevLabel(s))}</span>`).join('')}
+    <span class="li"><span class="sw" style="background:var(--none)"></span>${esc(t('legendNone'))}</span>
+  </div>`;
+
+  const mapCard = `<div class="mapwrap">
+      <div class="maphead">
+        <span class="micro" style="min-width:0">${esc(t('mapTitle'))}<span class="wide-only"> · ${esc(t('tapMap'))}</span></span>
+        <select data-action="county" aria-label="${esc(t('pickCounty'))}">${COUNTIES.map(c =>
+          `<option value="${c.code}" ${c.code === state.county ? 'selected' : ''}>${esc(countyLabel(c.code))}</option>`).join('')}</select>
+      </div>
+      ${taiwanAlertMap(fills, state.county)}
+      ${legend}
+    </div>`;
+
+  const quakeBlock = q ? `<div class="sev-${q.severity}"><button class="alert" data-quake="${esc(q.id)}" style="width:100%">
+      <div class="meta"><span class="sevchip">${esc(sevLabel(q.severity))}</span>
+        <span class="chip">${esc(q.source === 'significant' ? t('significant') : t('smallArea'))}</span>
+        <span class="time">${esc(relTime(q.originTime, state.now))}</span>
+        ${isActive({ expiresAt: q.validEnd }) ? '' : `<span class="chip ghost">${esc(t('expired'))}</span>`}</div>
+      <h3>${esc(t('quakeHeadline', { m: q.magnitude != null ? q.magnitude.toFixed(1) : '—', i: intensityLabel(q.maxIdx), c: q.maxCode ? countyLabel(q.maxCode) : '—' }))}</h3>
+      <div class="body">${esc(epicenterLabel(q.epicenter))}</div>
+      <div class="meta"><span class="time">${esc(fmtFull(q.originTime))}</span></div>
+    </button>${alertProv(quakeToAlert(q))}</div>`
+    : `<div class="card pad note">${esc(state.ds.quakeBig.status === 'loading' ? t('loading') : t('noQuake'))}</div>`;
+
+  return `
+  <div class="grid cols">
+    <div class="grid" style="gap:12px">
+      ${mapCard}
+      ${hero}
+      ${status}
+    </div>
+    <div class="grid" style="gap:12px">
+      ${mine.length ? `<div class="sect"><span class="micro">${esc(t('inCounty', { c: countyLabel(state.county) }))}</span><span class="line"></span><span class="micro">${esc(t('nActive', { n: mine.length }))}</span></div>
+        <div class="grid" style="gap:10px">${mine.map(alertCard).join('')}</div>` : ''}
+      ${others.length ? `<div class="sect"><span class="micro">${esc(t('elsewhere'))}</span><span class="line"></span><span class="micro">${esc(t('nActive', { n: others.length }))}</span></div>
+        <div class="grid" style="gap:10px">${others.map(alertCard).join('')}</div>` : ''}
+      <div class="sect"><span class="micro">${esc(t('latestQuake'))}</span><span class="line"></span></div>
+      ${quakeBlock}
+      <div class="note" style="margin-top:2px">${esc(t('latestQuakeNote'))}</div>
+      <div class="sect"><span class="micro">${esc(t('dataStatus'))}</span><span class="line"></span></div>
+      ${dataPanel()}
+    </div>
+  </div>
+  <div class="disclaim">${esc(t('disclaimer'))}</div>`;
+}
+
+function guidanceBlock(kind) {
+  const g = GUIDANCE[kind]; if (!g) return '';
+  const items = g[state.lang] || g.en;
+  return `<div class="card pad" style="margin-top:12px">
+    <div class="micro" style="margin-bottom:8px">${esc(t('guidance'))} <span class="sevchip" style="--sev:var(--info);margin-left:6px">${esc(t('generatedBadge'))}</span></div>
+    <ul style="margin:0;padding-left:18px;font-size:14px;line-height:1.65">${items.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+    <div class="note" style="margin-top:8px">${esc(t('guidanceNote'))}</div>
+  </div>`;
+}
+function rawBlock(obj, label) {
+  let json = '';
+  try { json = JSON.stringify(obj, null, 1); } catch (e) { json = String(obj); }
+  if (json.length > 6000) json = json.slice(0, 6000) + '\n… truncated';
+  return `<div class="prov"><span class="tag">${esc(label)}</span>
+    <pre style="white-space:pre-wrap;word-break:break-word;max-height:300px;overflow:auto;margin:6px 0 0;font-size:10px;line-height:1.5">${esc(json)}</pre></div>`;
+}
+
+function viewDetail() {
+  const a = state.alerts.find(x => x.id === state.alertId);
+  if (!a) { state.view = 'home'; return viewHome(); }
+  const p = a.payload;
+  let fields = '', extra = '', guide = '';
+
+  if (a.hazardType === 'weather') {
+    fields += field(t('phenomenon'), esc(phenomenonLabel(p.phenomena)),
+      { ds: DATASETS.warnCounty.id, path: 'records.location[].hazardConditions.hazards[].info.phenomena', raw: p.phenomena, issued: a.issuedAt }, 'txt');
+    fields += field(t('significanceK'), esc(significanceLabel(p.significance)),
+      { ds: DATASETS.warnCounty.id, path: '…info.significance', raw: p.significance,
+        note: note('sig') }, 'txt');
+    fields += field(t('severityK'), `<span style="color:${sevColor(a.severity)}">${esc(sevLabel(a.severity))}</span>`,
+      { computed: true, rule: a.severityBasis.rule, inputs: a.severityBasis.inputs });
+    fields += field(t('issued'), esc(fmtFull(a.issuedAt)),
+      { ds: DATASETS.warnText.id, path: 'records.record[].datasetInfo.issueTime', raw: p.issueTime,
+        note: note('tz') });
+    fields += field(t('valid'), esc(fmtFull(a.startsAt)) + ' → ' + esc(fmtFull(a.expiresAt)),
+      { ds: DATASETS.warnCounty.id, path: '…hazards[].validTime', raw: { startTime: p.startTime, endTime: p.endTime } });
+    const areaChips = (a.regions || []).map(r => `<span class="chip ${r.code === state.county ? 'me' : r.code ? '' : 'ghost'}">${esc(r.code ? countyLabel(r.code) : regionLabel(r))}</span>`).join(' ');
+    extra += `<div class="card pad" style="margin-top:12px">
+      <div class="micro" style="margin-bottom:8px">${esc(t('affected'))}</div>
+      <div class="meta" style="display:flex;flex-wrap:wrap;gap:6px">${areaChips}</div>
+      ${annot({ computed: true, rule: rule('countyResolve'),
+        inputs: (a.regions || []).map(r => ({ label: r.zh, value: r.code || 'no county — sub-county area' })) })}
+      ${(a.regions || []).some(r => !r.code) ? `<div class="note" style="margin-top:8px">${esc(t('subregionNote', { a: (a.regions.filter(r => !r.code).map(r => r.zh).join('、')) }))}</div>` : ''}
+    </div>`;
+    const nar = p.narrative || {};
+    extra += `<div class="card pad" style="margin-top:12px">
+      <div class="micro" style="margin-bottom:8px">${esc(t('officialText'))}
+        <span class="sevchip" style="--sev:${nar.en ? 'var(--info)' : 'var(--advisory)'};margin-left:6px">${esc(nar.en ? t('officialEnBadge') : 'zh-TW')}</span></div>
+      ${nar.en ? `<div style="font-size:14px;white-space:pre-wrap">${esc(nar.en)}</div>${annot({ ds: DATASETS.warnText.id, path: 'records.record[].contents.content[lang=en].contentText', raw: nar.enLang })}` : ''}
+      ${nar.zh ? `<div style="font-size:14px;white-space:pre-wrap;color:${nar.en ? 'var(--ink2)' : 'var(--ink)'};margin-top:${nar.en ? '10px' : '0'}">${esc(nar.zh)}</div>
+        ${annot({ ds: DATASETS.warnText.id, path: 'records.record[].contents.content.contentText', raw: nar.zhLang, issued: a.issuedAt })}` : `<div class="note">—</div>`}
+      ${!nar.en ? `<div class="note" style="margin-top:8px">${esc(t('officialZhOnly'))}</div>` : ''}
+    </div>`;
+    guide = guidanceBlock(GUIDE_FOR_PHENOM[p.phenomena] || 'wind');
+  }
+
+  if (a.hazardType === 'earthquake') {
+    const q = p;
+    fields += field(t('magnitude'), `<span class="big">${q.magnitude != null ? q.magnitude.toFixed(1) : '—'}</span>`,
+      { ds: q.dsId, path: 'EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue', raw: q.raw.EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue, issued: q.issueTime, url: q.web });
+    fields += field(t('maxIntensity'), esc(intensityLabel(q.maxIdx)) + (q.maxCode ? ' · ' + esc(countyLabel(q.maxCode)) : ''),
+      { computed: true, rule: rule('intensityMax', { n: q.shakingMeta.observeCount }),
+        inputs: [...q.intensityByCounty].map(([c, i]) => ({ label: BY_CODE[c].zh, value: INTENSITY_SCALE[i] })) });
+    fields += field(t('severityK'), `<span style="color:${sevColor(a.severity)}">${esc(sevLabel(a.severity))}</span>`,
+      { computed: true, rule: a.severityBasis.rule, inputs: a.severityBasis.inputs });
+    fields += field(t('epicenter'), esc(epicenterLabel(q.epicenter)),
+      { computed: state.lang !== 'zh', rule: state.lang === 'zh' ? null : rule('epicenterParse'),
+        ds: q.dsId, path: 'EarthquakeInfo.Epicenter.Location', raw: q.epicenterRaw,
+        inputs: state.lang === 'zh' ? null : [
+          { label: 'county', value: q.epicenter.parts.countyZh }, { label: 'direction', value: q.epicenter.parts.dirZh },
+          { label: 'distance (km)', value: q.epicenter.parts.distanceKm }, { label: 'parenthetical', value: q.epicenter.parts.paren }],
+        note: q.epicenter.parts.untranslated ? t('untranslated') : null }, 'txt');
+    fields += field(t('depth'), esc(q.depth != null ? q.depth.toFixed(1) : '—') + ' ' + esc(t('km')),
+      { ds: q.dsId, path: 'EarthquakeInfo.FocalDepth', raw: q.raw.EarthquakeInfo.FocalDepth });
+    fields += field(t('originTime'), esc(fmtFull(q.originTime)),
+      { ds: q.dsId, path: 'EarthquakeInfo.OriginTime', raw: q.raw.EarthquakeInfo.OriginTime,
+        note: note('originKey') });
+    fields += field(t('valid'), esc(fmtFull(q.issueTime)) + ' → ' + esc(fmtFull(q.validEnd)),
+      { ds: q.dsId, path: 'ValidTime.EndTime', raw: q.raw.ValidTime && q.raw.ValidTime.EndTime });
+    extra += `<div class="card pad" style="margin-top:12px">
+      <div style="font-size:14px">${esc(q.reportContent || '')}</div>
+      ${annot({ ds: q.dsId, path: 'ReportContent', raw: q.reportContent, issued: q.issueTime, url: q.web })}
+      <div class="note" style="margin-top:8px">${esc(q.remark || '')}</div>
+      ${q.tsunami ? `<div class="status sev-severe" style="margin-top:10px"><span class="sevchip">${esc(t('sev.severe'))}</span><div>${esc(t('tsunamiFlag'))}</div></div>` : ''}
+    </div>
+    <button class="chip" data-quake="${esc(q.id)}" style="margin-top:12px;padding:9px 12px">${esc(t('shakingMap'))} →</button>`;
+    guide = guidanceBlock(q.tsunami ? 'tsunami' : 'quake');
+  }
+
+  if (a.hazardType === 'typhoon') {
+    extra = typhoonCard(p, false);
+    guide = guidanceBlock('typhoon');
+  }
+
+  return `<button class="backbtn" data-action="back">← ${esc(t('back'))}</button>
+  <div class="hero sev-${a.severity}"><div class="bar"></div>
+    <div style="min-width:0">
+      <div class="micro">${esc(sevLabel(a.severity))} · ${esc(regionNames(a, 2))}</div>
+      <div style="font-size:19px;font-weight:600;line-height:1.3;margin-top:4px">${esc(alertHeadline(a))}</div>
+      <div class="where">${esc(alertBody(a))}</div>
+    </div></div>
+  ${annot({ computed: true, rule: rule('summaryGen') })}
+  ${fields ? `<div class="card pad" style="margin-top:12px">${fields}</div>` : ''}
+  ${extra}
+  ${guide}
+  <div class="card pad" style="margin-top:12px">
+    <a href="${esc(a.sourceUrl || '#')}" target="_blank" rel="noopener">${esc(t('openCwa'))} ↗</a>
+    <div class="micro" style="margin-top:8px">${esc(a.datasetIds.join(' · '))}</div>
+    ${rawBlock(a.raw, t('rawRecord'))}
+  </div>
+  <div class="disclaim">${esc(t('disclaimer'))}</div>`;
+}
+
+function intensityLegend() {
+  return `<div class="legend">${INTENSITY_SCALE.map((v, i) =>
+    `<span class="li"><span class="sw" style="background:${INTENSITY_COLOR[i]}"></span>${esc(INTENSITY_LABEL[state.lang][i])}</span>`).join('')}</div>`;
+}
+function viewQuake() {
+  const q = state.quakes.find(x => x.id === state.quakeId) || state.quakes[0];
+  const picker = state.quakes.slice(0, 12).map(x =>
+    `<button class="chip ${x.id === (q && q.id) ? 'me' : ''}" data-quake="${esc(x.id)}" style="padding:6px 8px">
+      M${x.magnitude != null ? x.magnitude.toFixed(1) : '—'} · ${esc(fmtDT(x.originTime))}</button>`).join(' ');
+  if (!q) {
+    return `<div class="card pad note">${esc(state.ds.quakeBig.status === 'loading' ? t('loading') : t('noQuake'))}</div>${dataPanel()}`;
+  }
+  const fills = new Map([...q.intensityByCounty].map(([c, i]) => [c, INTENSITY_COLOR[i]]));
+  const extra = proj => {
+    if (q.lat == null || q.lon == null) return '';
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+    const inside = q.lon >= MAIN_BBOX.minLon && q.lon <= MAIN_BBOX.maxLon && q.lat >= MAIN_BBOX.minLat && q.lat <= MAIN_BBOX.maxLat;
+    const x = clamp(proj.X(q.lon), 14, proj.w - 14), y = clamp(proj.Y(q.lat), 14, proj.h - 14);
+    return `<g transform="translate(${x.toFixed(1)},${y.toFixed(1)})">
+      <g stroke="#FFFFFF" stroke-width="3.4" fill="none" opacity=".85">
+        <circle r="6.5"></circle><line x1="-13" y1="0" x2="13" y2="0"></line><line x1="0" y1="-13" x2="0" y2="13"></line>
+      </g>
+      <circle r="12" fill="none" stroke="#11161B" stroke-width="1" opacity=".35"></circle>
+      <circle r="6.5" fill="none" stroke="#11161B" stroke-width="1.6"></circle>
+      <line x1="-13" y1="0" x2="13" y2="0" stroke="#11161B" stroke-width="1" opacity=".75"></line>
+      <line x1="0" y1="-13" x2="0" y2="13" stroke="#11161B" stroke-width="1" opacity=".75"></line>
+      <circle r="3" fill="#C4190B"></circle>
+      ${inside ? '' : `<text class="maplabel" x="0" y="-18" text-anchor="middle" fill="#11161B" stroke="#FFFFFF" stroke-width="3" paint-order="stroke">${esc(state.lang === 'en' ? 'OFF MAP' : state.lang === 'ja' ? '範囲外' : '圖外')}</text>`}
+    </g>`;
+  };
+  const rows = [...q.intensityByCounty].sort((a, b) => b[1] - a[1]).map(([c, i]) =>
+    `<div class="field"><div class="row"><span class="k" style="letter-spacing:.06em">${esc(countyLabel(c))}</span>
+      <span class="v" style="color:${INTENSITY_COLOR[i]}">${esc(INTENSITY_LABEL[state.lang][i])}</span></div></div>`).join('');
+
+  let f = '';
+  f += field(t('magnitude'), `<span class="big">${q.magnitude != null ? q.magnitude.toFixed(1) : '—'}</span>`,
+    { ds: q.dsId, path: 'EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue', raw: q.raw.EarthquakeInfo.EarthquakeMagnitude.MagnitudeValue, issued: q.issueTime, url: q.web });
+  f += field(t('depth'), esc(q.depth != null ? q.depth.toFixed(1) : '—') + ' ' + esc(t('km')),
+    { ds: q.dsId, path: 'EarthquakeInfo.FocalDepth', raw: q.raw.EarthquakeInfo.FocalDepth });
+  f += field(t('epicenter'), esc(epicenterLabel(q.epicenter)),
+    { computed: state.lang !== 'zh', ds: q.dsId, path: 'EarthquakeInfo.Epicenter.Location', raw: q.epicenterRaw,
+      rule: state.lang === 'zh' ? null : rule('epicenterParse'),
+      inputs: state.lang === 'zh' ? null : [
+        { label: 'county', value: q.epicenter.parts.countyZh }, { label: 'direction', value: q.epicenter.parts.dirZh },
+        { label: 'distance (km)', value: q.epicenter.parts.distanceKm }, { label: 'parenthetical', value: q.epicenter.parts.paren }],
+      note: q.epicenter.parts.untranslated ? t('untranslated') : null }, 'txt');
+  f += field('lat / lon', `${q.lat}, ${q.lon}`,
+    { ds: q.dsId, path: 'EarthquakeInfo.Epicenter.EpicenterLatitude / .EpicenterLongitude',
+      raw: { EpicenterLatitude: q.raw.EarthquakeInfo.Epicenter.EpicenterLatitude, EpicenterLongitude: q.raw.EarthquakeInfo.Epicenter.EpicenterLongitude } });
+  f += field(t('maxIntensity'), esc(intensityLabel(q.maxIdx)) + (q.maxCode ? ' · ' + esc(countyLabel(q.maxCode)) : ''),
+    { computed: true, rule: q.shakingMeta.usedObserve ? rule('intensityMax', { n: q.shakingMeta.observeCount })
+        : rule('intensityFallback', { m: q.shakingMeta.rowCount }),
+      inputs: [...q.intensityByCounty].map(([c, i]) => ({ label: BY_CODE[c].zh, value: INTENSITY_SCALE[i] })) });
+  f += field(t('originTime'), esc(fmtFull(q.originTime)),
+    { ds: q.dsId, path: 'EarthquakeInfo.OriginTime', raw: q.raw.EarthquakeInfo.OriginTime,
+      note: note('originKey') });
+  f += field(t('issued'), esc(fmtFull(q.issueTime)), { ds: q.dsId, path: 'IssueTime', raw: q.raw.IssueTime });
+  f += field(t('valid'), esc(fmtFull(q.validEnd)) + (isActive({ expiresAt: q.validEnd }) ? '' : ' · ' + esc(t('expired'))),
+    { ds: q.dsId, path: 'ValidTime.EndTime', raw: q.raw.ValidTime && q.raw.ValidTime.EndTime });
+  f += field(t('quakeSource'), esc(q.source === 'significant' ? t('significant') : t('smallArea')),
+    { ds: q.dsId, path: 'records.Earthquake[]', raw: q.earthquakeNo, note: note('eqNo') });
+
+  return `<div class="grid cols">
+    <div class="grid" style="gap:12px">
+      <div class="hero sev-${q.severity}"><div class="bar"></div><div style="min-width:0">
+        <div class="micro">${esc(t('navQuake'))} · ${esc(relTime(q.originTime, state.now))}</div>
+        <div class="word">M ${q.magnitude != null ? q.magnitude.toFixed(1) : '—'}</div>
+        <div class="where">${esc(epicenterLabel(q.epicenter))}</div></div></div>
+      <div class="mapwrap">
+        <div class="maphead">
+          <span class="micro">${esc(t('shakingMap'))}</span><span class="micro">${esc(t('epicenter'))} ✛</span></div>
+        ${taiwanAlertMap(fills, state.county, { extra })}
+        ${intensityLegend()}
+      </div>
+      <div class="note">${esc(t('intensityNote'))}</div>
+    </div>
+    <div class="grid" style="gap:12px">
+      <div class="card pad">${f}</div>
+      <div class="card pad">
+        <div class="micro" style="margin-bottom:6px">${esc(t('shakingMap'))}</div>
+        ${rows || `<div class="note">${esc(t('noShaking'))}</div>`}
+        ${annot({ computed: true, rule: rule('shakingRows'),
+          inputs: [{ label: 'ShakingArea rows', value: q.shakingMeta.rowCount }, { label: 'observe rows', value: q.shakingMeta.observeCount }] })}
+      </div>
+      ${guidanceBlock(q.tsunami ? 'tsunami' : 'quake')}
+      <div class="card pad">
+        <div class="micro" style="margin-bottom:8px">${esc(t('recentQuakes'))}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${picker}</div>
+      </div>
+      <div class="card pad"><a href="${esc(q.web || '#')}" target="_blank" rel="noopener">${esc(t('openCwa'))} ↗</a>
+        <div class="micro" style="margin-top:8px">${esc(q.dsId)}</div>
+        ${rawBlock(q.raw, t('rawRecord'))}</div>
+    </div>
+  </div>
+  <div class="disclaim">${esc(t('disclaimer'))}</div>`;
+}
+
+function typhoonCard(c, withMap) {
+  const f = c.latest || {};
+  const mapMeta = {};
+  const mapSvg = withMap ? typhoonMap(c, 390, 330, mapMeta) : '';
+  const st = c.stale ? t('stale') : c.near ? t('nearTaiwan') : t('farAway');
+  let fields = '';
+  fields += field(t('lastFix'), esc(fmtFull(f.time)) + ' · ' + esc(relTime(f.time, state.now)),
+    { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].DateTime', raw: f.raw && f.raw.DateTime });
+  fields += field(t('distTaiwan'), `<span class="big">${c.distanceKm != null ? Math.round(c.distanceKm) : '—'}</span> ${esc(t('km'))}`,
+    { computed: true, rule: rule('distanceCalc'),
+      inputs: [{ label: 'centre lat/lon', value: `${f.lat}, ${f.lon}` }, { label: 'nearest county', value: c.nearestCode ? BY_CODE[c.nearestCode].zh : null }] });
+  fields += field(t('bearingFromTw'), esc(dirLabel(c.bearingPoint)) + (c.bearing != null ? ` · ${Math.round(c.bearing)}°` : ''),
+    { computed: true, rule: rule('bearingCalc') });
+  fields += field(t('pressure'), esc(f.pressure != null ? f.pressure : '—') + ' hPa',
+    { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].Pressure', raw: f.raw && f.raw.Pressure, note: note('strNum') });
+  fields += field(t('maxWind'), esc(f.wind != null ? f.wind : '—') + ' m/s',
+    { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].MaxWindSpeed', raw: f.raw && f.raw.MaxWindSpeed });
+  fields += field(t('gust'), esc(f.gust != null ? f.gust : '—') + ' m/s',
+    { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].MaxGustSpeed', raw: f.raw && f.raw.MaxGustSpeed });
+  fields += field(t('movement'),
+    esc(state.lang === 'en'
+      ? (f.prediction && f.prediction.en ? f.prediction.en
+         : `${moveDirLabel(f.moveDir)}${f.moveSpeed != null ? ' · ' + f.moveSpeed + ' km/h' : ''}`)
+      : (f.prediction && f.prediction.zh ? (state.lang === 'ja' ? toShinjitai(f.prediction.zh) : f.prediction.zh)
+         : `${moveDirLabel(f.moveDir)}${f.moveSpeed != null ? ' · ' + f.moveSpeed + ' km/h' : ''}`)),
+    { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].MovingPrediction[]', raw: f.raw && f.raw.MovingPrediction,
+      note: state.lang === 'en' ? note('officialMove') : null }, 'txt');
+  fields += field(t('radius15'), esc(f.r15 != null ? f.r15 : '—') + ' ' + esc(t('km')),
+    { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].Circle15ms.Radius', raw: f.raw && f.raw.Circle15ms && f.raw.Circle15ms.Radius });
+  fields += field(t('radius25'), esc(f.r25 != null ? f.r25 : '—') + ' ' + esc(t('km')),
+    { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].Circle25ms.Radius', raw: f.raw && f.raw.Circle25ms && f.raw.Circle25ms.Radius });
+
+  const fc = c.forecast.map(x => `<div class="field"><div class="row">
+      <span class="k">+${x.hour}H · ${esc(fmtDT(x.time))}</span>
+      <span class="v">${x.lat}N ${x.lon}E${x.pressure != null ? ' · ' + x.pressure + ' hPa' : ''}${x.wind != null ? ' · ' + x.wind + ' m/s' : ''}</span></div>
+      ${x.stateTransfer && (x.stateTransfer.en || x.stateTransfer.zh) ? `<div class="note">${esc(state.lang === 'en' ? (x.stateTransfer.en || x.stateTransfer.zh) : state.lang === 'ja' ? toShinjitai(x.stateTransfer.zh || '') : (x.stateTransfer.zh || ''))}</div>` : ''}
+    </div>`).join('');
+
+  return `${withMap ? `<div class="mapwrap">
+      <div class="maphead">
+        <span class="micro">${esc(t('trackObserved'))} ━ · ${esc(t('trackForecast'))} ╌</span>
+        <span class="micro">15 / 25 m/s</span></div>
+      ${mapSvg}
+      ${mapMeta.offFrame ? `<div class="legend" style="display:block">${esc(t('towardStorm', { name: cycloneName(c),
+        d: c.distanceKm != null ? Math.round(c.distanceKm) : '?', dir: dirLabel(c.bearingPoint) }))}</div>` : ''}
+    </div>` : ''}
+    <div class="status" style="margin-top:12px"><span class="sevchip ${c.near ? 'sev-warning' : 'sev-info'}">${esc(c.near ? sevLabel('warning') : sevLabel('info'))}</span><div>${esc(st)}</div></div>
+    ${annot({ computed: true, rule: c.proximityBasis.rule, inputs: c.proximityBasis.inputs })}
+    <div class="status" style="margin-top:10px"><div>${esc(t('noWarnFlag'))}</div></div>
+    <div class="card pad" style="margin-top:12px">${fields}</div>
+    <div class="card pad" style="margin-top:12px">
+      <div class="micro" style="margin-bottom:6px">${esc(t('forecastPositions'))}</div>${fc || '<div class="note">—</div>'}
+      ${annot({ ds: DATASETS.typhoon.id, path: 'ForecastData.Fix[]', raw: 'InitialTime + ForecastHour', note: note('forecastValid') })}
+    </div>`;
+}
+function viewTyphoon() {
+  if (state.ds.typhoon.status === 'loading') return `<div class="card pad note">${esc(t('loading'))}</div>`;
+  if (!state.cyclones.length) {
+    return `<div class="card pad"><div style="font-size:15px">${esc(t('noCyclone'))}</div>
+      <div class="note" style="margin-top:8px">${esc(t('basinNote'))}</div></div>${dataPanel()}
+      <div class="disclaim">${esc(t('disclaimer'))}</div>`;
+  }
+  const c = state.cyclones[state.cycloneIdx] || state.cyclones[0];
+  const picker = state.cyclones.length > 1 ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">${
+    state.cyclones.map((x, i) => `<button class="chip ${i === state.cycloneIdx ? 'me' : ''}" data-cyclone="${i}" style="padding:6px 9px">${esc(cycloneName(x))}</button>`).join('')}</div>` : '';
+  return `${picker}
+    <div class="hero sev-${c.near ? 'warning' : 'info'}"><div class="bar"></div><div style="min-width:0">
+      <div class="micro">${esc(t('navTyphoon'))} ${c.tyNo ? '· No.' + esc(c.tyNo) : ''} ${c.year ? '· ' + esc(c.year) : ''}</div>
+      <div class="word">${esc(cycloneName(c))}</div>
+      <div class="where">${esc(t('distTaiwan'))} ${c.distanceKm != null ? Math.round(c.distanceKm) : '—'} ${esc(t('km'))} · ${esc(dirLabel(c.bearingPoint))}</div>
+    </div></div>
+    ${typhoonCard(c, true)}
+    ${guidanceBlock('typhoon')}
+    <div class="card pad" style="margin-top:12px">
+      <div class="micro" style="margin-bottom:6px">${esc(t('cyclones'))}</div>
+      <div class="note">${esc(t('basinNote'))}</div>
+      <div style="margin-top:8px"><a href="https://www.cwa.gov.tw/V8/${state.lang === 'en' ? 'E' : 'C'}/P/Typhoon/TY_NEWS.html" target="_blank" rel="noopener">${esc(t('openCwa'))} ↗</a></div>
+      <div class="micro" style="margin-top:8px">${esc(DATASETS.typhoon.id)}</div>
+      ${rawBlock(c.raw, t('rawRecord'))}
+    </div>
+    <div class="disclaim">${esc(t('disclaimer'))}</div>`;
+}
+
+/* ------------------------- 9. SHELL + BOOT -------------------------- */
+
+const NAV_ICONS = {
+  home: '<svg viewBox="0 0 24 24"><path d="M4 20V9l8-5 8 5v11"/><path d="M9 20v-6h6v6"/></svg>',
+  quake: '<svg viewBox="0 0 24 24"><path d="M2 12h3l2-6 3 12 3-15 3 15 2-6h4"/></svg>',
+  typhoon: '<svg viewBox="0 0 24 24"><path d="M12 12c4-4 9-2 9 2s-6 5-9 2-1-9 3-9"/><circle cx="12" cy="12" r="1.6"/></svg>'
+};
+function renderHeader() {
+  const seg = document.getElementById('langSeg');
+  seg.innerHTML = LANGS.map(([code, label]) =>
+    `<button data-lang="${code}" aria-pressed="${state.lang === code}">${esc(label)}</button>`).join('');
+  document.getElementById('srcLabel').textContent = state.source ? t('hideSource') : t('showSource');
+  document.getElementById('srcBtn').setAttribute('aria-pressed', String(state.source));
+  document.getElementById('brandSub').textContent = t('brandSub');
+  document.documentElement.lang = state.lang === 'zh' ? 'zh-Hant' : state.lang;
+  document.getElementById('nav').innerHTML = ['home', 'quake', 'typhoon'].map(v => {
+    const key = v === 'home' ? 'navHome' : v === 'quake' ? 'navQuake' : 'navTyphoon';
+    const cur = state.view === v || (v === 'home' && state.view === 'detail');
+    return `<button data-nav="${v}" aria-current="${cur ? 'page' : 'false'}">${NAV_ICONS[v]}<span>${esc(t(key))}</span></button>`;
+  }).join('');
+}
+function render() {
+  state.now = new Date();
+  document.body.classList.toggle('src', state.source);
+  const el = document.getElementById('view');
+  const html = state.view === 'detail' ? viewDetail()
+    : state.view === 'quake' ? viewQuake()
+    : state.view === 'typhoon' ? viewTyphoon() : viewHome();
+  el.innerHTML = html;
+  renderHeader();
+}
+function save() {
+  try { localStorage.setItem('tw-alert', JSON.stringify({ lang: state.lang, county: state.county, source: state.source })); } catch (e) {}
+}
+function go(view) { state.view = view; render(); window.scrollTo({ top: 0, behavior: 'instant' in document.documentElement.style ? 'instant' : 'auto' }); }
+
+function wire() {
+  document.addEventListener('click', e => {
+    const hit = sel => e.target.closest && e.target.closest(sel);
+    let el;
+    if ((el = hit('[data-lang]'))) { state.lang = el.getAttribute('data-lang'); save(); render(); return; }
+    if ((el = hit('#srcBtn'))) { state.source = !state.source; save(); render(); return; }
+    if ((el = hit('[data-nav]'))) { go(el.getAttribute('data-nav')); return; }
+    if ((el = hit('[data-retry]'))) { fetchDataset(el.getAttribute('data-retry')); return; }
+    if ((el = hit('[data-action="refresh"]'))) { loadAll(); return; }
+    if ((el = hit('[data-action="back"]'))) { go('home'); return; }
+    if ((el = hit('[data-quake]'))) { state.quakeId = el.getAttribute('data-quake'); go('quake'); return; }
+    if ((el = hit('[data-cyclone]'))) { state.cycloneIdx = +el.getAttribute('data-cyclone'); render(); return; }
+    if ((el = hit('[data-alert]'))) { state.alertId = el.getAttribute('data-alert'); go('detail'); return; }
+    if ((el = hit('[data-county]'))) { state.county = el.getAttribute('data-county'); save(); render(); return; }
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const el = e.target.closest && e.target.closest('[data-county]');
+    if (el) { e.preventDefault(); state.county = el.getAttribute('data-county'); save(); render(); }
+  });
+  document.addEventListener('change', e => {
+    const el = e.target.closest && e.target.closest('select[data-action="county"]');
+    if (el) { state.county = el.value; save(); render(); }
+  });
+}
+function boot() {
+  try {
+    const raw = localStorage.getItem('tw-alert');
+    if (raw) { const o = JSON.parse(raw);
+      if (o.lang && LANGS.some(l => l[0] === o.lang)) state.lang = o.lang;
+      if (o.county && BY_CODE[o.county]) state.county = o.county;
+      state.source = !!o.source; }
+  } catch (e) {}
+  wire();
+  rebuild();
+  render();
+  loadAll();
+  setInterval(() => { state.now = new Date(); if (state.view !== 'detail') render(); }, 60000);
+  setInterval(loadAll, 300000);
+}
+if (typeof document !== 'undefined' && typeof window !== 'undefined') {
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', boot) : boot();
+} else if (typeof module !== 'undefined') {
+  module.exports = { state, rebuild, parseCwaTime, parseEpicenter, quakeSeverity, weatherSeverity,
+    buildWeatherAlerts, buildQuakes, buildCyclones, resolveRegion, intensityIndex, INTENSITY_SCALE,
+    distanceToTaiwan, makeProjection, featurePath, TW_GEO, COUNTIES, activeAlerts, severityByCounty,
+    alertHeadline, alertBody, regionNames, countyLabel, t, DATASETS, typhoonMap, taiwanAlertMap, num, haversine };
+}
+</script>
+</body>
+</html>
