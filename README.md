@@ -4,6 +4,8 @@ A disaster-alert page for foreigners living in Taiwan. It reads the Central Weat
 
 The whole application is one HTML file. There is no build step, no bundler, no server and no API key to type in. Open `taiwan-alert.html` and it fetches the country's current conditions.
 
+Live at [catsmice.github.io/anshin-app/taiwan-alert.html](https://catsmice.github.io/anshin-app/taiwan-alert.html), showing Taiwan's real conditions as of the moment you open it.
+
 ![The earthquake screen: a choropleth of Taiwan coloured by shaking intensity, with wave fronts expanding from the epicenter and seismographs lighting up as they are reached](screenshots/earthquake-waves.gif)
 
 A real report replayed on the earthquake screen: M4.9 off Taitung on 14 September 2026. The P and S fronts expand from the epicenter at 6.0 and 3.5 km/s, and each of the 52 seismographs lights up when the S front reaches the epicentral distance CWA recorded for that station.
@@ -24,7 +26,9 @@ cd anshin-app
 open taiwan-alert.html      # macOS, or just double-click the file
 ```
 
-It runs from `file://`. CWA's API sends `Access-Control-Allow-Origin: *`, so a local page is allowed to fetch it directly. The key already in the file (`rdec-key-123-45678-011121314`) is CWA's public demo key and needs no signup.
+That hosted copy is this same file served straight from the repo by GitHub Pages. Nothing is built and nothing else is deployed.
+
+It also runs from `file://`. CWA's API sends `Access-Control-Allow-Origin: *`, so a local page is allowed to fetch it directly. The key already in the file (`rdec-key-123-45678-011121314`) is CWA's public demo key and needs no signup.
 
 You need a browser from 2023 or later. The stylesheet uses CSS `color-mix()`, which means Chrome 111, Safari 16.2 or Firefox 113 and up.
 
