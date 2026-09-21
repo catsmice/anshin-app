@@ -115,11 +115,11 @@ The typhoon map frames the storm and Taiwan together until doing so would shrink
 
 English is the default, since the users are foreigners.
 
-CWA always supplies Chinese and occasionally supplies official English. Anshin uses the official English where it exists and labels it official. Most active warnings ship a `zh-TW` narrative only, so every alert also gets an English and Japanese body written from the structured fields (phenomenon, counties, validity window, computed severity) and labelled as generated. The safety guidance in the app is written by the app and marked as such. A machine rendering of safety-critical wording is never presented as the official text.
+CWA always supplies Chinese and occasionally supplies official English. Anshin uses the official English where it exists and labels it official. Most active warnings ship a `zh-TW` narrative only, so every alert also gets a body written from the structured fields (phenomenon, counties, validity window, computed severity) in each of the other four languages, labelled as generated. The safety guidance in the app is written by the app and marked as such. A machine rendering of safety-critical wording is never presented as the official text.
 
-![The same home screen in Traditional Chinese, with county names, alert bodies and interface labels all switched](screenshots/languages.jpg)
+![The same home screen in Vietnamese, with county names, severity tiers, alert bodies and interface labels all switched](screenshots/languages.jpg)
 
-The same screen in 繁體中文. Switching language reprints everything, including the generated alert bodies and the source annotations.
+The same screen in Tiếng Việt, with a heavy rain warning and a strong wind advisory in force. Switching language reprints everything, including the generated alert bodies and the source annotations. The alert text here was written by the app from the structured fields, because CWA published this warning in Chinese only.
 
 Japanese place names are folded to shinjitai, so `花蓮縣` reads as `花蓮県` and `臺東縣政府` becomes `台東県庁`.
 
@@ -161,8 +161,8 @@ One file, one script, nine numbered sections:
 
 | Section | What it holds |
 | --- | --- |
-| 1 Constants | dataset ids, the 22 counties with their Chinese, English and Japanese names, the phenomenon table, the guidance text, the inline GeoJSON |
-| 2 i18n | every string in three languages, including the provenance rules themselves |
+| 1 Constants | dataset ids, the 22 counties named in all five languages, the phenomenon table, the guidance text, the inline GeoJSON |
+| 2 i18n | every string in five languages, including the provenance rules themselves |
 | 3 Utils | timestamp parsing, number coercion, great-circle distance, the provenance renderer |
 | 4 Translation | Chinese area name to county code, epicenter parsing, shinjitai folding |
 | 5 Severity | the four-tier rules, each returning its rule and the inputs it used |
