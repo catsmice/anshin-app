@@ -1,6 +1,6 @@
 # Anshin
 
-A disaster-alert page for foreigners living in Taiwan. It reads the Central Weather Administration's open data live in the browser and shows what is happening in English, 繁體中文, 日本語 or Bahasa Indonesia.
+A disaster-alert page for foreigners living in Taiwan. It reads the Central Weather Administration's open data live in the browser and shows what is happening in English, 繁體中文, 日本語, Bahasa Indonesia or Tiếng Việt.
 
 The whole application is one HTML file. There is no build step, no bundler, no server and no API key to type in. Open `taiwan-alert.html` and it fetches the country's current conditions.
 
@@ -14,7 +14,7 @@ A real report replayed on the earthquake screen: M4.9 off Taitung on 14 Septembe
 
 Taiwan's official warnings are published in Chinese. A migrant worker in Taichung, a tourist in Hualien or a foreign resident in Taipei finds out last, usually secondhand from somebody who can read the announcement for them. The data itself is public and open. The language is the barrier.
 
-Anshin reads the same feeds the Chinese-language sites use and renders them in four languages, on a map that still works if you read none of them.
+Anshin reads the same feeds the Chinese-language sites use and renders them in five languages, on a map that still works if you read none of them.
 
 安心 (anshin) is Japanese for peace of mind.
 
@@ -111,7 +111,7 @@ Counties with nothing active are a neutral slate. Green would promise a safety c
 
 The typhoon map frames the storm and Taiwan together until doing so would shrink Taiwan past recognition. Beyond that it keeps Taiwan at a readable size and draws the storm's bearing as an arrow to the edge of the frame, labelled with the distance.
 
-## Four languages
+## Five languages
 
 English is the default, since the users are foreigners.
 
@@ -123,11 +123,13 @@ The same screen in 繁體中文. Switching language reprints everything, includi
 
 Japanese place names are folded to shinjitai, so `花蓮縣` reads as `花蓮県` and `臺東縣政府` becomes `台東県庁`.
 
-Indonesian was added for the migrant workers this app was written for in the first place. Its severity tiers deliberately follow BMKG's own scale, so `AWAS`, `SIAGA` and `WASPADA` mean at a glance what they already mean at home, instead of being a translation of four English words. Counties read as `Kabupaten Hualien` and `Kota Taipei`, and the ten intensity tiers as `5 lemah` and `5 kuat`.
+Indonesian and Vietnamese were added for the migrant workers this app was written for in the first place. Together those two nationalities are over 70% of Taiwan's roughly 873,000 migrant workers, and neither was served by any of the first three languages.
 
-Two things are still English for an Indonesian reader: the parsed epicenter sentence, which `parseEpicenter` only writes in English, Chinese and Japanese, and the Show source rules, which fall back to English by design. Neither renders as a blank space, and both are open follow-ups.
+Both follow the same principle: use the words the reader already knows rather than translating the English. Indonesian severity tiers follow BMKG's own scale, so `AWAS`, `SIAGA` and `WASPADA` carry the meaning they carry at home. Vietnamese place names use the Sino-Vietnamese forms Vietnamese media and the community in Taiwan actually use, so Hualien is `Huyện Hoa Liên` and Kaohsiung is `TP. Cao Hùng`. The ten intensity tiers read as `5 lemah` and `5 kuat` in Indonesian, `5 yếu` and `5 mạnh` in Vietnamese.
 
-The Indonesian has not been reviewed by a native speaker. The interface text is a smaller risk than `GUIDANCE`, which tells people to cut the power at the breaker and to move uphill without waiting for an official tsunami alert. Those thirty-odd sentences should be read by someone fluent before anyone relies on them.
+Two things are still English for Indonesian and Vietnamese readers: the parsed epicenter sentence, which `parseEpicenter` only writes in English, Chinese and Japanese, and the Show source rules, which fall back to English by design. Neither renders as a blank space, and both are open follow-ups.
+
+Neither the Indonesian nor the Vietnamese has been reviewed by a native speaker. The interface text is a smaller risk than `GUIDANCE`, which tells people to cut the power at the breaker and to move uphill without waiting for an official tsunami alert. Those twenty-six sentences per language should be read by someone fluent before anyone relies on them.
 
 CWA gives the epicenter only in Chinese, in a fixed pattern: `臺東縣政府東南東方 43.0 公里 (位於臺灣東南部海域)`. The distance is measured from the county government office, so the English reads `43.0 km ESE of Taitung County Hall`. When the parenthetical only repeats the county already named, it is dropped, so `花蓮縣政府南方 3.2 公里 (位於花蓮縣近海)` becomes `3.2 km S of Hualien County Hall, offshore`. Intensity values are translated as well: `5弱` is `5-lower` in English and `震度5弱` in Japanese, with a line noting that this is Taiwan's ten-tier shaking scale and not magnitude.
 

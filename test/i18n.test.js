@@ -14,7 +14,7 @@ const STRING = "'(?:[^'\\\\]|\\\\.)*'";
 const LANGS = [...src.matchAll(/\['([a-z]{2})','[^']+'\]/g)].map(m => m[1]);
 
 test('the language picker offers the languages it should', () => {
-  assert.deepStrictEqual(LANGS, ['en', 'zh', 'ja', 'id']);
+  assert.deepStrictEqual(LANGS, ['en', 'zh', 'ja', 'id', 'vi']);
 });
 
 test('every language has a date locale', () => {
