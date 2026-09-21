@@ -1,6 +1,6 @@
 # Anshin
 
-A disaster-alert page for foreigners living in Taiwan. It reads the Central Weather Administration's open data live in the browser and shows what is happening in English, 繁體中文 or 日本語.
+A disaster-alert page for foreigners living in Taiwan. It reads the Central Weather Administration's open data live in the browser and shows what is happening in English, 繁體中文, 日本語 or Bahasa Indonesia.
 
 The whole application is one HTML file. There is no build step, no bundler, no server and no API key to type in. Open `taiwan-alert.html` and it fetches the country's current conditions.
 
@@ -14,7 +14,7 @@ A real report replayed on the earthquake screen: M4.9 off Taitung on 14 Septembe
 
 Taiwan's official warnings are published in Chinese. A migrant worker in Taichung, a tourist in Hualien or a foreign resident in Taipei finds out last, usually secondhand from somebody who can read the announcement for them. The data itself is public and open. The language is the barrier.
 
-Anshin reads the same feeds the Chinese-language sites use and renders them in three languages, on a map that still works if you read none of them.
+Anshin reads the same feeds the Chinese-language sites use and renders them in four languages, on a map that still works if you read none of them.
 
 安心 (anshin) is Japanese for peace of mind.
 
@@ -111,7 +111,7 @@ Counties with nothing active are a neutral slate. Green would promise a safety c
 
 The typhoon map frames the storm and Taiwan together until doing so would shrink Taiwan past recognition. Beyond that it keeps Taiwan at a readable size and draws the storm's bearing as an arrow to the edge of the frame, labelled with the distance.
 
-## Three languages
+## Four languages
 
 English is the default, since the users are foreigners.
 
@@ -123,9 +123,17 @@ The same screen in 繁體中文. Switching language reprints everything, includi
 
 Japanese place names are folded to shinjitai, so `花蓮縣` reads as `花蓮県` and `臺東縣政府` becomes `台東県庁`.
 
+Indonesian was added for the migrant workers this app was written for in the first place. Its severity tiers deliberately follow BMKG's own scale, so `AWAS`, `SIAGA` and `WASPADA` mean at a glance what they already mean at home, instead of being a translation of four English words. Counties read as `Kabupaten Hualien` and `Kota Taipei`, and the ten intensity tiers as `5 lemah` and `5 kuat`.
+
+Two things are still English for an Indonesian reader: the parsed epicenter sentence, which `parseEpicenter` only writes in English, Chinese and Japanese, and the Show source rules, which fall back to English by design. Neither renders as a blank space, and both are open follow-ups.
+
+The Indonesian has not been reviewed by a native speaker. The interface text is a smaller risk than `GUIDANCE`, which tells people to cut the power at the breaker and to move uphill without waiting for an official tsunami alert. Those thirty-odd sentences should be read by someone fluent before anyone relies on them.
+
 CWA gives the epicenter only in Chinese, in a fixed pattern: `臺東縣政府東南東方 43.0 公里 (位於臺灣東南部海域)`. The distance is measured from the county government office, so the English reads `43.0 km ESE of Taitung County Hall`. When the parenthetical only repeats the county already named, it is dropped, so `花蓮縣政府南方 3.2 公里 (位於花蓮縣近海)` becomes `3.2 km S of Hualien County Hall, offshore`. Intensity values are translated as well: `5弱` is `5-lower` in English and `震度5弱` in Japanese, with a line noting that this is Taiwan's ten-tier shaking scale and not magnitude.
 
 ## Reading it without seeing it
+
+Adding a language is a data change and not a code change. Labels resolve through one `pick()` lookup that falls back to English and never to Chinese, and `node --test` fails on any string, county, intensity tier or guidance category that a language is missing.
 
 Every update replaces the view's HTML in one go, which tells a screen reader nothing. A live region in the page shell, outside the replaced subtree, announces the selected county's level whenever that sentence changes, and switches from polite to assertive when the level is severe. It stays quiet on the one-minute clock tick. Animations are skipped under `prefers-reduced-motion`, and the map has a plain `<select>` beside it for anyone who would rather not tab through 22 county shapes.
 
