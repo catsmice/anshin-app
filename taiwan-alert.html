@@ -638,6 +638,10 @@ const STR = {
   staleTitle:{en:'Showing data saved on this device', zh:'目前顯示本機先前存下的資料', ja:'この端末に保存されたデータを表示しています'},
   staleBody:{en:'{n} dataset(s) could not be refreshed. What you see was last fetched from CWA at {t} and may be out of date. Anything issued since then is not shown.', zh:'有 {n} 項資料無法更新。目前顯示的內容最後一次自氣象署取得的時間為 {t}，可能已非最新；在那之後發布的訊息不會出現。', ja:'{n} 件のデータを更新できませんでした。表示中の内容は {t} に気象署から取得したもので、最新ではない可能性があります。それ以降に発表されたものは表示されません。'},
   staleNote:{en:'Some datasets could not be refreshed, so a saved copy is shown. It is not a live reading.', zh:'部分資料無法更新，因此顯示本機存下的版本，並非即時資料。', ja:'一部のデータを更新できないため、保存済みの内容を表示しています。リアルタイムの値ではありません。'},
+  sigTebao:{en:'special weather report', zh:'特報', ja:'特報'},
+  insetKinmen:{en:'KINMEN', zh:'金門', ja:'金門'},
+  insetMatsu:{en:'MATSU', zh:'馬祖', ja:'馬祖'},
+  offMap:{en:'OFF MAP', zh:'圖外', ja:'範囲外'},
   and:{en:' and ', zh:'、', ja:'、'},
   listSep:{en:', ', zh:'、', ja:'、'}
 };
@@ -831,28 +835,38 @@ function resolveRegion(zhRaw) {
   if (SUBREGION_NAMES[zh]) return { code: null, zh, sub: zh, untranslated: false };
   return { code: null, zh, sub: zh, untranslated: true };
 }
+/* One lookup for every label table, so a new language is data and not code.
+   A language the table does not carry falls back to ENGLISH and never to
+   Chinese: an Indonesian reader shown 花蓮縣 is the exact failure this app
+   exists to prevent, and it would fail silently. `zh` is passed separately
+   where the Chinese name is the table's own key rather than a field. */
+function pick(o, zh) {
+  if (state.lang === 'zh' && zh != null) return zh;
+  if (!o) return zh == null ? '' : zh;
+  return o[state.lang] || o.en || o.zh || (zh == null ? '' : zh);
+}
+/* A Chinese string with no translation at all. Japanese at least gets the
+   characters it actually uses; everyone else sees what CWA published. */
+const zhAs = zh => state.lang === 'ja' ? toShinjitai(zh) : zh;
+/* CWA runs a Chinese site and an English one. There is no third. */
+const cwaSite = () => state.lang === 'zh' ? 'C' : 'E';
+
 function regionLabel(r) {
-  if (r.code) {
-    const c = BY_CODE[r.code];
-    return state.lang === 'en' ? c.en : state.lang === 'ja' ? c.ja : c.zh;
-  }
+  if (r.code) return countyLabel(r.code);
   const s = SUBREGION_NAMES[r.zh];
-  if (s) return state.lang === 'en' ? s.en : state.lang === 'ja' ? s.ja : r.zh;
-  return state.lang === 'ja' ? toShinjitai(r.zh) : r.zh;
+  if (s) return pick(s, r.zh);
+  return zhAs(r.zh);
 }
 const countyLabel = code => {
   const c = BY_CODE[code];
-  if (!c) return code;
-  return state.lang === 'en' ? c.en : state.lang === 'ja' ? c.ja : c.zh;
+  return c ? pick(c) : code;
 };
 function phenomenonLabel(zh) {
   const p = PHENOMENA[zh];
-  if (!p) return state.lang === 'ja' ? toShinjitai(zh) : zh;
-  return state.lang === 'en' ? p.en : state.lang === 'ja' ? p.ja : zh;
+  return p ? pick(p, zh) : zhAs(zh);
 }
 function significanceLabel(zh) {
-  if (zh === '特報') return state.lang === 'en' ? 'special weather report' : state.lang === 'ja' ? '特報' : '特報';
-  return state.lang === 'ja' ? toShinjitai(zh) : zh;
+  return zh === '特報' ? t('sigTebao') : zhAs(zh);
 }
 const intensityIndex = v => INTENSITY_SCALE.indexOf(String(v || '').trim());
 function intensityLabel(idx) {
@@ -916,7 +930,7 @@ function parseEpicenter(locRaw) {
   out.parts = { countyZh, countyCode: code, dirZh, dirEn: dir.en, distanceKm: dist, paren: parenKept, untranslated };
   return out;
 }
-const epicenterLabel = p => state.lang === 'en' ? p.en : state.lang === 'ja' ? p.ja : p.zh;
+const epicenterLabel = p => pick(p);
 
 /* ---------------------------- 5. SEVERITY --------------------------- */
 /* CWA publishes no severity tier — `significance` is the constant string 特報,
@@ -1100,7 +1114,7 @@ function buildWeatherAlerts() {
       issuedAt: parseCwaTime(a.issueTime) || start, expiresAt: end, startsAt: start,
       affectedRegions: [...a.codes], regions: a.regions,
       payload: a, datasetIds: [DATASETS.warnCounty.id, DATASETS.warnText.id],
-      sourceUrl: 'https://www.cwa.gov.tw/V8/' + (state.lang === 'en' ? 'E' : 'C') + '/W/Warning/Warning.html',
+      sourceUrl: 'https://www.cwa.gov.tw/V8/' + cwaSite() + '/W/Warning/Warning.html',
       raw: { fromWarnCounty: a.rawCounty, fromWarnText: a.rawText }
     });
   }
@@ -1266,7 +1280,7 @@ function cycloneToAlert(c) {
     affectedRegions: [...codes],
     regions: [...codes].map(code => ({ code, zh: BY_CODE[code].zh, sub: null, untranslated: false })),
     payload: c, datasetIds: [DATASETS.typhoon.id],
-    sourceUrl: 'https://www.cwa.gov.tw/V8/' + (state.lang === 'en' ? 'E' : 'C') + '/P/Typhoon/TY_NEWS.html',
+    sourceUrl: 'https://www.cwa.gov.tw/V8/' + cwaSite() + '/P/Typhoon/TY_NEWS.html',
     raw: c.raw
   };
 }
@@ -1466,8 +1480,8 @@ function taiwanAlertMap(fills, selected, opts) {
     ${mapBackdrop(proj, W, H)}
     ${drawHalos(MAIN_CODES, proj, o.halo)}
     <g filter="url(#lift)">${drawCounties(MAIN_CODES, proj, fills, selected, true, o)}</g>
-    ${drawInset('TW-KIN', gap, H - footPad - insetH * 2 - gap * 3, insetW, insetH, fills, selected, state.lang === 'en' ? 'KINMEN' : '金門')}
-    ${drawInset('TW-LIE', gap, H - footPad - insetH - gap, insetW, insetH, fills, selected, state.lang === 'en' ? 'MATSU' : '馬祖')}
+    ${drawInset('TW-KIN', gap, H - footPad - insetH * 2 - gap * 3, insetW, insetH, fills, selected, t('insetKinmen'))}
+    ${drawInset('TW-LIE', gap, H - footPad - insetH - gap, insetW, insetH, fills, selected, t('insetMatsu'))}
     ${o.extra ? o.extra(proj) : ''}
   </svg>`;
 }
@@ -1563,7 +1577,25 @@ const moveDirLabel = code => {
   const cp = COMPASS.find(x => x[1] === String(code || '').toUpperCase());
   return cp ? dirLabel(cp) : (code || '—');
 };
-const dirLabel = cp => cp ? (state.lang === 'en' ? cp[1] : state.lang === 'ja' ? cp[2] : cp[0]) : '—';
+const dirLabel = cp => cp ? pick({ zh: cp[0], en: cp[1], ja: cp[2] }) : '—';
+/* CWA writes the movement sentence in Chinese always and in English
+   sometimes. Chinese uses its own; Japanese folds the Chinese to shinjitai;
+   every other language takes the official English when it exists and falls
+   back to the structured direction and speed. `official` drives the badge, so
+   CWA's own wording is never passed off as ours or the other way round. */
+function movementText(f) {
+  const p = f.prediction || {};
+  const fallback = `${moveDirLabel(f.moveDir)}${f.moveSpeed != null ? ' · ' + f.moveSpeed + ' km/h' : ''}`;
+  if (state.lang === 'zh') return { text: p.zh || fallback, official: !!p.zh };
+  if (state.lang === 'ja') return { text: p.zh ? toShinjitai(p.zh) : fallback, official: false };
+  return { text: p.en || fallback, official: !!p.en };
+}
+function transferText(x) {
+  const st = x.stateTransfer || {};
+  if (state.lang === 'zh') return st.zh || '';
+  if (state.lang === 'ja') return st.zh ? toShinjitai(st.zh) : '';
+  return st.en || st.zh || '';
+}
 function cycloneName(c) {
   const en = c.nameEn ? c.nameEn.charAt(0) + c.nameEn.slice(1).toLowerCase() : '—';
   if (state.lang === 'zh') return `${c.nameZh || en}${c.nameZh ? `（${c.nameEn}）` : ''}`;
@@ -2017,7 +2049,7 @@ function quakeExtra(q) {
         <line x1="${(-13 * k).toFixed(1)}" y1="0" x2="${(13 * k).toFixed(1)}" y2="0" stroke="#11161B" stroke-width="${k.toFixed(1)}" opacity=".75"></line>
         <line x1="0" y1="${(-13 * k).toFixed(1)}" x2="0" y2="${(13 * k).toFixed(1)}" stroke="#11161B" stroke-width="${k.toFixed(1)}" opacity=".75"></line>
         <circle r="${(3 * k).toFixed(1)}" fill="#C4190B"></circle>
-        ${inside ? '' : `<text class="maplabel" x="0" y="${(-18 * k).toFixed(1)}" text-anchor="middle" fill="#11161B" stroke="#FFFFFF" stroke-width="3" paint-order="stroke">${esc(state.lang === 'en' ? 'OFF MAP' : state.lang === 'ja' ? '範囲外' : '圖外')}</text>`}
+        ${inside ? '' : `<text class="maplabel" x="0" y="${(-18 * k).toFixed(1)}" text-anchor="middle" fill="#11161B" stroke="#FFFFFF" stroke-width="3" paint-order="stroke">${esc(t('offMap'))}</text>`}
       </g>
       <text class="wclock" x="${(proj.w - 12 * k).toFixed(1)}" y="${(18 * k).toFixed(1)}" text-anchor="end"></text>`;
   };
@@ -2215,14 +2247,10 @@ function typhoonCard(c, withMap) {
     { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].MaxWindSpeed', raw: f.raw && f.raw.MaxWindSpeed });
   fields += field(t('gust'), esc(f.gust != null ? f.gust : '—') + ' m/s',
     { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].MaxGustSpeed', raw: f.raw && f.raw.MaxGustSpeed });
-  fields += field(t('movement'),
-    esc(state.lang === 'en'
-      ? (f.prediction && f.prediction.en ? f.prediction.en
-         : `${moveDirLabel(f.moveDir)}${f.moveSpeed != null ? ' · ' + f.moveSpeed + ' km/h' : ''}`)
-      : (f.prediction && f.prediction.zh ? (state.lang === 'ja' ? toShinjitai(f.prediction.zh) : f.prediction.zh)
-         : `${moveDirLabel(f.moveDir)}${f.moveSpeed != null ? ' · ' + f.moveSpeed + ' km/h' : ''}`)),
+  const move = movementText(f);
+  fields += field(t('movement'), esc(move.text),
     { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].MovingPrediction[]', raw: f.raw && f.raw.MovingPrediction,
-      note: state.lang === 'en' ? note('officialMove') : null }, 'txt');
+      note: move.official ? note('officialMove') : null }, 'txt');
   fields += field(t('radius15'), esc(f.r15 != null ? f.r15 : '—') + ' ' + esc(t('km')),
     { ds: DATASETS.typhoon.id, path: 'AnalysisData.Fix[last].Circle15ms.Radius', raw: f.raw && f.raw.Circle15ms && f.raw.Circle15ms.Radius });
   fields += field(t('radius25'), esc(f.r25 != null ? f.r25 : '—') + ' ' + esc(t('km')),
@@ -2231,7 +2259,7 @@ function typhoonCard(c, withMap) {
   const fc = c.forecast.map(x => `<div class="field"><div class="row">
       <span class="k">+${x.hour}H · ${esc(fmtDT(x.time))}</span>
       <span class="v">${x.lat}N ${x.lon}E${x.pressure != null ? ' · ' + x.pressure + ' hPa' : ''}${x.wind != null ? ' · ' + x.wind + ' m/s' : ''}</span></div>
-      ${x.stateTransfer && (x.stateTransfer.en || x.stateTransfer.zh) ? `<div class="note">${esc(state.lang === 'en' ? (x.stateTransfer.en || x.stateTransfer.zh) : state.lang === 'ja' ? toShinjitai(x.stateTransfer.zh || '') : (x.stateTransfer.zh || ''))}</div>` : ''}
+      ${transferText(x) ? `<div class="note">${esc(transferText(x))}</div>` : ''}
     </div>`).join('');
 
   return `${withMap ? `<div class="mapwrap">
@@ -2272,7 +2300,7 @@ function viewTyphoon() {
     <div class="card pad" style="margin-top:12px">
       <div class="micro" style="margin-bottom:6px">${esc(t('cyclones'))}</div>
       <div class="note">${esc(t('basinNote'))}</div>
-      <div style="margin-top:8px"><a href="https://www.cwa.gov.tw/V8/${state.lang === 'en' ? 'E' : 'C'}/P/Typhoon/TY_NEWS.html" target="_blank" rel="noopener">${esc(t('openCwa'))} ↗</a></div>
+      <div style="margin-top:8px"><a href="https://www.cwa.gov.tw/V8/${cwaSite()}/P/Typhoon/TY_NEWS.html" target="_blank" rel="noopener">${esc(t('openCwa'))} ↗</a></div>
       <div class="micro" style="margin-top:8px">${esc(DATASETS.typhoon.id)}</div>
       ${rawBlock(c.raw, t('rawRecord'))}
     </div>

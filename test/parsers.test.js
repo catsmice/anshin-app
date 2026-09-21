@@ -172,3 +172,25 @@ test('the projection squeezes longitude by cos(latitude)', () => {
   const oneDegLat = proj.Y(23) - proj.Y(24);
   assert.ok(oneDegLon < oneDegLat, 'a degree of longitude is shorter than one of latitude here');
 });
+
+/* --- adding a language must stay a data change ------------------------- */
+
+test('an unsupported language falls back to English and never to Chinese', () => {
+  const fresh = loadApp();
+  fresh.state.lang = 'xx';
+  const han = /[一-鿿]/;
+  const samples = {
+    county: fresh.countyLabel('TW-HUA'),
+    severity: fresh.t('sev.severe'),
+    status: fresh.t('statusClear', { c: fresh.countyLabel('TW-TPE') }),
+    headline: fresh.alertHeadline({
+      hazardType: 'weather', payload: { phenomena: '大雨' },
+      affectedRegions: ['TW-HUA'], regions: []
+    })
+  };
+  for (const [what, value] of Object.entries(samples)) {
+    assert.ok(value, `${what} produced nothing`);
+    assert.ok(!han.test(value),
+      `${what} fell back to Chinese for an unknown language: ${value}`);
+  }
+});
